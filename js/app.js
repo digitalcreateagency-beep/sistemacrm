@@ -9849,12 +9849,13 @@ async function renderSettingsPage() {
     return;
   }
 
-  document.getElementById('app-content').innerHTML =
+  document.getElementById('main-content').innerHTML =
     '<div class="page-wrap"><div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">' +
     '<div style="width:38px;height:38px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">⚙️</div>' +
     '<div><div style="font-size:18px;font-weight:700">Configurações</div>' +
     '<div style="font-size:12px;color:var(--text-muted)">Controle o que cada role pode ver no sistema</div></div></div>' +
     '<div id="settings-content"><div style="color:var(--text-muted);font-size:13px">Carregando...</div></div></div>';
+  document.getElementById('main-content').style.display = '';
 
   const settings = window._navSettings || await window.loadNavSettings();
   window._navSettings = settings;
