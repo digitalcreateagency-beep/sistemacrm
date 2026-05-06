@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulário de Contrato | DigitalCreate</title>
+<style>
+:root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1e1040 0%,#3b1f8c 45%,#7b2fb8 100%);min-height:100vh;color:var(--gray-900)}
+.header{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.header-brand{color:#fff;font-size:17px;font-weight:700}
+.header-sep{width:1px;height:22px;background:rgba(255,255,255,.25);margin:0 8px}
+.header-title{color:rgba(255,255,255,.65);font-size:13px}
+.progress-wrap{background:rgba(255,255,255,.05);padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.07)}
+.progress-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.progress-label{color:rgba(255,255,255,.6);font-size:12px}
+.progress-count{color:#fff;font-size:12px;font-weight:600}
+.progress-bar{height:4px;background:rgba(255,255,255,.13);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#06b6d4,#a855f7);border-radius:2px;transition:width .4s ease}
+.steps-nav{display:flex;gap:6px;padding:10px 24px;overflow-x:auto;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);scrollbar-width:none}
+.steps-nav::-webkit-scrollbar{display:none}
+.step-pill{flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.45);background:transparent;white-space:nowrap;transition:all .2s;user-select:none}
+.step-pill.active{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;border-color:transparent}
+.step-pill.done{background:rgba(168,85,247,.18);color:rgba(255,255,255,.75);border-color:rgba(168,85,247,.35)}
+.main{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+.intro-card{background:#fff;border-radius:20px;padding:44px 40px;text-align:center;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.intro-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(91,33,182,.08),rgba(168,85,247,.08));border:1px solid rgba(124,58,237,.18);color:#5b21b6;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:18px}
+.intro-card h1{font-size:27px;font-weight:800;color:var(--gray-900);margin-bottom:10px;line-height:1.2}
+.intro-card h1 span{background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-card p{color:var(--gray-600);font-size:14px;line-height:1.65;max-width:480px;margin:0 auto 24px}
+.intro-stats{display:flex;justify-content:center;gap:36px;margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-100)}
+.intro-stat strong{display:block;font-size:24px;font-weight:800;background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-stat span{font-size:11px;color:var(--gray-600)}
+.section-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.12);display:none;animation:fadeIn .35s ease}
+.section-card.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:2px solid var(--gray-100)}
+.section-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#5b21b6,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.section-info h2{font-size:19px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.section-info p{font-size:13px;color:var(--gray-600);line-height:1.5}
+.field{margin-bottom:22px}
+.field label{display:block;font-size:13.5px;font-weight:600;color:var(--gray-700);margin-bottom:6px;line-height:1.45}
+.field label .req{color:#ef4444;margin-left:2px}
+.field label .hint{display:block;font-size:11.5px;font-weight:400;color:var(--gray-600);margin-top:2px;line-height:1.4}
+.field input[type="text"],.field input[type="email"],.field input[type="tel"],.field input[type="date"],.field textarea,.field select{width:100%;padding:11px 15px;border:2px solid var(--gray-200);border-radius:10px;font-size:13.5px;font-family:inherit;color:var(--gray-900);background:var(--gray-50);transition:all .2s;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.field textarea{min-height:96px}
+.field textarea.tall{min-height:120px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.options-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.option-chip{display:flex;align-items:center;gap:6px;padding:7px 13px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--gray-700);background:#fff;transition:all .2s;user-select:none}
+.option-chip input{display:none}
+.option-chip:hover{border-color:#7c3aed;color:#5b21b6;background:rgba(124,58,237,.04)}
+.option-chip.selected{background:linear-gradient(135deg,#5b21b6,#7c3aed);border-color:transparent;color:#fff}
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:22px;border-top:2px solid var(--gray-100)}
+.btn{padding:11px 26px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
+.btn-back{background:var(--gray-100);color:var(--gray-700)}
+.btn-back:hover{background:var(--gray-200)}
+.btn-next{background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.btn-next:hover{transform:translateY(-1px)}
+.btn-submit{background:linear-gradient(135deg,#06b6d4,#5b21b6);color:#fff;padding:12px 32px;font-size:14px;box-shadow:0 4px 18px rgba(6,182,212,.35)}
+.btn-submit:hover{transform:translateY(-2px)}
+.success-card{background:#fff;border-radius:20px;padding:64px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);display:none}
+.success-icon{width:80px;height:80px;background:linear-gradient(135deg,#06b6d4,#a855f7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px}
+.success-card h2{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px}
+.success-card p{color:var(--gray-600);font-size:14px;line-height:1.65}
+@media(max-width:600px){.section-card,.intro-card{padding:24px 18px}.intro-card h1{font-size:22px}.two-col{grid-template-columns:1fr}.intro-stats{gap:20px}.section-header{flex-direction:column;gap:10px}}
+.field.v-error input,.field.v-error textarea,.field.v-error select{border-color:#ef4444!important;background:#fff5f5!important}
+.field.v-error .options-group .option-chip{border-color:#ef4444}
+.field-err-msg{font-size:11.5px;color:#ef4444;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:4px}
+.sec-err-banner{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#b91c1c;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:10px;animation:shakeX .4s ease}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.step-pill.has-err{border-color:#ef4444!important;color:#ef4444!important;background:rgba(239,68,68,.08)!important}
+</style>
+</head>
+<body>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, addDoc, collection, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app = initializeApp({ apiKey:"AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg", authDomain:"crm-digitalcreate.firebaseapp.com", projectId:"crm-digitalcreate" });
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+(async () => {
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
+  try {
+    const snap = await getDoc(doc(db, 'crm_form_config', 'contrato'));
+    const qs = snap.exists() ? (snap.data().questions || []) : [];
+    if (qs.length) {
+      const lastNavBtns = Array.from(document.querySelectorAll('.nav-btns')).pop();
+      if (lastNavBtns) {
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-top:20px;padding-top:20px;border-top:2px solid var(--gray-100,#f3f4f6)';
+        div.innerHTML = `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:14px">✨ Perguntas adicionais</div>` +
+          qs.map(q => {
+            const req = q.required ? ' required' : '';
+            const reqMark = q.required ? ' <span style="color:#ef4444">*</span>' : '';
+            const hint = q.hint ? `<span class="hint">${q.hint}</span>` : '';
+            if (q.type==='text')     return `<div class="field"><label>${q.label}${reqMark}${hint}</label><input type="text" name="cq_${q.id}"${req}></div>`;
+            if (q.type==='textarea') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><textarea name="cq_${q.id}"${req}></textarea></div>`;
+            if (q.type==='radio')    return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="radio" name="cq_${q.id}" value="${o}"${req} onchange="selectChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            if (q.type==='checkbox') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="checkbox" name="cq_${q.id}" value="${o}" onchange="toggleCheckChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            return '';
+          }).join('');
+        lastNavBtns.before(div);
+      }
+    }
+  } catch(e) { console.warn('Custom questions load:', e); }
+})();
+
+window._saveBriefing = async (data) => {
+  const payload = { ...data, submittedAt: new Date().toISOString(), type: 'contrato' };
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(authErr) { console.warn('Auth:', authErr.code); }
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Tempo esgotado após 15 segundos.')), 15000));
+  await Promise.race([addDoc(collection(db, 'crm_briefings'), payload), timeout]);
+};
+</script>
+
+<div class="header">
+  <span class="header-brand">DigitalCreate</span>
+  <div class="header-sep"></div>
+  <span class="header-title">Formulário de Contrato – Briefing + Dados</span>
+</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-top">
+    <span class="progress-label">Progresso do preenchimento</span>
+    <span class="progress-count" id="progressCount">Seção 1 de 7</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:14%"></div></div>
+</div>
+
+<div class="steps-nav" id="stepsNav">
+  <div class="step-pill active" onclick="goTo(0)">Dados Básicos</div>
+  <div class="step-pill" onclick="goTo(1)">Sobre o Negócio</div>
+  <div class="step-pill" onclick="goTo(2)">Posicionamento</div>
+  <div class="step-pill" onclick="goTo(3)">Presença Digital</div>
+  <div class="step-pill" onclick="goTo(4)">Identidade</div>
+  <div class="step-pill" onclick="goTo(5)">Operacional</div>
+  <div class="step-pill" onclick="goTo(6)">Contratação</div>
+</div>
+
+<div class="main">
+  <div class="intro-card" id="introCard">
+    <div class="intro-badge">Briefing + Dados</div>
+    <h1>Formulário de <span>Contrato</span></h1>
+    <p>Preencha todas as informações para que possamos iniciar o serviço com excelência. Seus dados são confidenciais.</p>
+    <div class="intro-stats">
+      <div class="intro-stat"><strong>7</strong><span>Seções</span></div>
+      <div class="intro-stat"><strong>27</strong><span>Questões</span></div>
+      <div class="intro-stat"><strong>~12 min</strong><span>Estimado</span></div>
+    </div>
+  </div>
+
+  <form id="briefingForm" onsubmit="return false">
+
+  <!-- SEÇÃO 1: DADOS BÁSICOS -->
+  <div class="section-card active" id="section-0">
+    <div class="section-header">
+      <div class="section-icon">01</div>
+      <div class="section-info"><h2>Dados Básicos</h2><p>Informações pessoais e de contato para o contrato.</p></div>
+    </div>
+    <div class="field"><label>Nome completo / Razão social <span class="req">*</span></label><input type="text" name="nome_razao" placeholder="Ex: Maria Silva / Clínica Bem Estar LTDA" required></div>
+    <div class="field"><label>Nome fantasia (se houver)</label><input type="text" name="nome_fantasia" placeholder="Ex: Studio Aura"></div>
+    <div class="two-col">
+      <div class="field"><label>CPF / CNPJ <span class="req">*</span></label><input type="text" name="cpf_cnpj" placeholder="000.000.000-00 ou 00.000.000/0001-00" required></div>
+      <div class="field"><label>WhatsApp <span class="req">*</span></label><input type="tel" name="whatsapp" placeholder="(11) 99999-9999" required></div>
+    </div>
+    <div class="field"><label>E-mail principal <span class="req">*</span></label><input type="email" name="email" placeholder="seu@email.com.br" required></div>
+    <div class="field"><label>Endereço completo <span class="req">*</span></label><input type="text" name="endereco" placeholder="Rua, número, bairro, cidade, estado, CEP" required></div>
+    <div class="nav-btns"><span></span><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 2: SOBRE O NEGÓCIO -->
+  <div class="section-card" id="section-1">
+    <div class="section-header">
+      <div class="section-icon">02</div>
+      <div class="section-info"><h2>Sobre o Negócio</h2><p>Contexto da empresa para personalizar o serviço.</p></div>
+    </div>
+    <div class="field"><label>Qual é o seu segmento de atuação? <span class="req">*</span></label><input type="text" name="segmento" placeholder="Ex: Saúde e bem-estar, Moda, Tecnologia, Alimentação..." required></div>
+    <div class="field"><label>Descreva brevemente o que sua empresa faz <span class="req">*</span></label><textarea name="descricao_empresa" placeholder="Ex: Somos uma clínica de estética especializada em harmonização facial e tratamentos de pele..." required></textarea></div>
+    <div class="field"><label>Há quanto tempo está no mercado? <span class="req">*</span></label><input type="text" name="tempo_mercado" placeholder="Ex: 3 anos, desde 2020" required></div>
+    <div class="field"><label>Quais são seus principais produtos ou serviços? <span class="req">*</span></label><textarea name="produtos_servicos" placeholder="Liste seus principais produtos ou serviços..." required></textarea></div>
+    <div class="field"><label>Quem é o seu público-alvo? <span class="req">*</span></label><textarea name="publico_alvo" placeholder="Ex: Mulheres de 30 a 50 anos, classe B/C, que buscam rejuvenescimento facial..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 3: POSICIONAMENTO -->
+  <div class="section-card" id="section-2">
+    <div class="section-header">
+      <div class="section-icon">03</div>
+      <div class="section-info"><h2>Posicionamento e Objetivos</h2><p>O que você quer alcançar com nosso serviço.</p></div>
+    </div>
+    <div class="field"><label>Qual é o principal objetivo com este serviço? <span class="req">*</span></label><textarea name="objetivo_principal" placeholder="Ex: Aumentar vendas online, ganhar seguidores qualificados, melhorar posicionamento no Google..." required></textarea></div>
+    <div class="field"><label>O que você espera alcançar nos próximos meses? <span class="req">*</span></label><textarea name="expectativas" placeholder="Ex: Dobrar o faturamento, chegar a 10k seguidores, ter leads diários..." required></textarea></div>
+    <div class="field"><label>Já realizou esse tipo de serviço antes? Como foi a experiência?</label><textarea name="experiencia_anterior" placeholder="Ex: Sim, tentei com outra agência mas não tive resultados. / Não, é meu primeiro investimento em marketing."></textarea></div>
+    <div class="field"><label>Quais são seus diferenciais em relação à concorrência? <span class="req">*</span></label><textarea name="diferenciais" placeholder="Ex: Atendimento humanizado, produto exclusivo, preço justo, resultado garantido..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 4: PRESENÇA DIGITAL -->
+  <div class="section-card" id="section-3">
+    <div class="section-header">
+      <div class="section-icon">04</div>
+      <div class="section-info"><h2>Presença Digital</h2><p>Como está sua marca hoje no mundo online.</p></div>
+    </div>
+    <div class="field"><label>Você possui redes sociais ativas? Quais? <span class="req">*</span></label><textarea name="redes_sociais" placeholder="Ex: Instagram @suamarca (2k seguidores), Facebook /suamarca, LinkedIn /sua-empresa" required></textarea></div>
+    <div class="field"><label>Possui site? Se sim, qual o link?</label><input type="text" name="possui_site" placeholder="www.suaempresa.com.br (ou 'Não possuo')"></div>
+    <div class="field"><label>Já investe em anúncios pagos? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="investe_anuncios" value="Sim, atualmente" onchange="selectChip(this)"><span>Sim, atualmente</span></label>
+        <label class="option-chip"><input type="radio" name="investe_anuncios" value="Já investi antes" onchange="selectChip(this)"><span>Já investi antes</span></label>
+        <label class="option-chip"><input type="radio" name="investe_anuncios" value="Nunca investi" onchange="selectChip(this)"><span>Nunca investi</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Com que frequência publica conteúdo atualmente? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="Todo dia" onchange="selectChip(this)"><span>Todo dia</span></label>
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="3–4x por semana" onchange="selectChip(this)"><span>3–4x por semana</span></label>
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="1–2x por semana" onchange="selectChip(this)"><span>1–2x por semana</span></label>
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="Raramente" onchange="selectChip(this)"><span>Raramente</span></label>
+        <label class="option-chip"><input type="radio" name="frequencia_conteudo" value="Não publico" onchange="selectChip(this)"><span>Não publico</span></label>
+      </div>
+    </div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 5: IDENTIDADE -->
+  <div class="section-card" id="section-4">
+    <div class="section-header">
+      <div class="section-icon">05</div>
+      <div class="section-info"><h2>Identidade e Comunicação</h2><p>O DNA da sua marca e como você quer ser visto.</p></div>
+    </div>
+    <div class="field"><label>Como você gostaria que sua marca fosse percebida? <span class="req">*</span></label><textarea name="percepcao_marca" placeholder="Ex: Sofisticada e acessível, jovem e moderna, confiável e profissional..." required></textarea></div>
+    <div class="field"><label>Existem cores, estilos ou referências visuais que você gosta?<span class="hint">Links, marcas de referência, cores preferidas, estilo de comunicação</span></label><textarea name="cores_estilos" placeholder="Ex: Gosto do estilo da marca X, cores neutras e dourado, fotos clean e minimalistas..."></textarea></div>
+    <div class="field"><label>Há algo que você NÃO quer na comunicação? <span class="req">*</span></label><textarea name="nao_quero" placeholder="Ex: Não quero linguagem muito formal, não quero cores berrantes, não quero memes..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 6: OPERACIONAL -->
+  <div class="section-card" id="section-5">
+    <div class="section-header">
+      <div class="section-icon">06</div>
+      <div class="section-info"><h2>Operacional</h2><p>Organização do trabalho e aprovações.</p></div>
+    </div>
+    <div class="field"><label>Quem será o responsável pela aprovação de conteúdos? <span class="req">*</span></label><input type="text" name="responsavel_aprovacao" placeholder="Ex: Eu mesma / João Silva – Gerente de Marketing" required></div>
+    <div class="field"><label>Qual o melhor horário/dia para contato? <span class="req">*</span></label><input type="text" name="melhor_contato" placeholder="Ex: Seg a Sex das 9h às 12h, preferencialmente por WhatsApp" required></div>
+    <div class="field"><label>Existe algum prazo importante ou data de lançamento?</label><input type="text" name="prazo_lancamento" placeholder="Ex: Lançamento de produto em 15/05, evento em 01/06..."></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 7: CONTRATAÇÃO -->
+  <div class="section-card" id="section-6">
+    <div class="section-header">
+      <div class="section-icon">07</div>
+      <div class="section-info"><h2>Contratação</h2><p>Detalhes do serviço contratado.</p></div>
+    </div>
+    <div class="field"><label>Qual plano/serviço foi escolhido? <span class="req">*</span></label><textarea name="plano_escolhido" placeholder="Ex: Gestão de Tráfego Pago – Meta Ads + Google Ads / Google Meu Negócio Mensal..." required></textarea></div>
+    <div class="field"><label>Forma de pagamento <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="forma_pagamento" value="Pix" onchange="selectChip(this)"><span>Pix</span></label>
+        <label class="option-chip"><input type="radio" name="forma_pagamento" value="Cartão de crédito" onchange="selectChip(this)"><span>Cartão de crédito</span></label>
+        <label class="option-chip"><input type="radio" name="forma_pagamento" value="Boleto" onchange="selectChip(this)"><span>Boleto</span></label>
+        <label class="option-chip"><input type="radio" name="forma_pagamento" value="Transferência" onchange="selectChip(this)"><span>Transferência</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Data de início desejada <span class="req">*</span></label><input type="text" name="data_inicio" placeholder="Ex: 01/05/2026 ou o quanto antes" required></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Formulário ✓</button></div>
+  </div>
+
+  </form>
+
+  <div class="success-card" id="successCard">
+    <div class="success-icon">✓</div>
+    <h2>Formulário enviado com sucesso!</h2>
+    <p>Recebemos todas as suas informações. A equipe DigitalCreate entrará em contato em breve para confirmar os detalhes do contrato. Seja bem-vindo(a)! 🎉</p>
+    <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px;align-items:center">
+      <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia das suas respostas:</strong></p>
+      <button onclick="downloadFormPDF()" style="background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,58,237,.35)">📄 Baixar PDF das respostas</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let current = 0;
+const total = 7;
+function updateUI() {
+  const pct = Math.round(((current + 1) / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `Seção ${current + 1} de ${total}`;
+  document.querySelectorAll('.step-pill').forEach((p, i) => { p.classList.remove('active','done'); if(i===current) p.classList.add('active'); else if(i<current) p.classList.add('done'); });
+  document.getElementById('introCard').style.display = current === 0 ? 'block' : 'none';
+}
+function goTo(idx) { document.getElementById(`section-${current}`).classList.remove('active'); current=Math.max(0,Math.min(total-1,idx)); document.getElementById(`section-${current}`).classList.add('active'); updateUI(); window.scrollTo({top:0,behavior:'smooth'}); }
+const _secTitles = ['Dados Básicos','Sobre o Negócio','Posicionamento e Objetivos','Presença Digital','Identidade e Comunicação','Operacional','Contratação'];
+
+function _clearErrors() {
+  document.querySelectorAll('.field.v-error').forEach(f => { f.classList.remove('v-error'); f.querySelector('.field-err-msg')?.remove(); });
+  document.querySelectorAll('.sec-err-banner').forEach(b => b.remove());
+  document.querySelectorAll('.step-pill.has-err').forEach(p => p.classList.remove('has-err'));
+}
+function _markError(field, msg) {
+  field.classList.add('v-error');
+  if (!field.querySelector('.field-err-msg')) { const el = document.createElement('div'); el.className = 'field-err-msg'; el.innerHTML = '⚠ ' + msg; field.appendChild(el); }
+}
+function _validateSection(idx) {
+  const sec = document.getElementById('section-' + idx);
+  if (!sec) return true;
+  const errFields = [];
+  sec.querySelectorAll('.field').forEach(field => {
+    const inputs = field.querySelectorAll('input,textarea,select');
+    let required = false;
+    inputs.forEach(inp => { if (inp.required) required = true; });
+    if (!required) return;
+    let filled = false;
+    const radios = field.querySelectorAll('input[type=radio]');
+    const checks = field.querySelectorAll('input[type=checkbox]');
+    if (radios.length) { filled = [...radios].some(r => r.checked); }
+    else if (checks.length && checks[0].required) { filled = [...checks].some(c => c.checked); }
+    else { const inp = field.querySelector('input:not([type=radio]):not([type=checkbox]),textarea,select'); filled = inp && inp.value.trim() !== ''; }
+    if (!filled) {
+      const lbl = field.querySelector('label')?.childNodes[0]?.textContent?.trim() || 'Campo obrigatório';
+      _markError(field, lbl + ' é obrigatório');
+      errFields.push(lbl);
+    }
+  });
+  if (errFields.length) {
+    const pill = document.querySelectorAll('.step-pill')[idx];
+    if (pill) pill.classList.add('has-err');
+    if (!sec.querySelector('.sec-err-banner')) {
+      const banner = document.createElement('div');
+      banner.className = 'sec-err-banner';
+      banner.innerHTML = '⚠️ <div><strong>Seção ' + (idx+1) + ': ' + (_secTitles[idx]||'') + '</strong> — Preencha os campos obrigatórios:<br><span style="font-weight:400">' + errFields.join(', ') + '</span></div>';
+      sec.insertBefore(banner, sec.querySelector('.section-header') || sec.firstChild);
+    }
+    return false;
+  }
+  return true;
+}
+function _validateAll() {
+  _clearErrors();
+  let firstErr = -1;
+  for (let i = 0; i < total; i++) { const ok = _validateSection(i); if (!ok && firstErr === -1) firstErr = i; }
+  if (firstErr !== -1) { goTo(firstErr); return false; }
+  return true;
+}
+
+function nextSection() { if (_validateSection(current)) goTo(current + 1); }
+function prevSection() { goTo(current - 1); }
+function selectChip(radio) { radio.closest('.options-group').querySelectorAll('.option-chip').forEach(c=>c.classList.remove('selected')); radio.closest('.option-chip').classList.add('selected'); }
+function toggleCheckChip(cb) { cb.closest('.option-chip').classList.toggle('selected',cb.checked); }
+
+async function submitForm() {
+  const form = document.getElementById('briefingForm');
+  if (!_validateAll()) return;
+  const btn = form.querySelector('.btn-submit');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+  const fd = new FormData(form);
+  const data = {
+    nome_razao: fd.get('nome_razao')||'', nome_fantasia: fd.get('nome_fantasia')||'',
+    cpf_cnpj: fd.get('cpf_cnpj')||'', whatsapp: fd.get('whatsapp')||'',
+    email: fd.get('email')||'', endereco: fd.get('endereco')||'',
+    segmento: fd.get('segmento')||'', descricao_empresa: fd.get('descricao_empresa')||'',
+    tempo_mercado: fd.get('tempo_mercado')||'', produtos_servicos: fd.get('produtos_servicos')||'',
+    publico_alvo: fd.get('publico_alvo')||'', objetivo_principal: fd.get('objetivo_principal')||'',
+    expectativas: fd.get('expectativas')||'', experiencia_anterior: fd.get('experiencia_anterior')||'',
+    diferenciais: fd.get('diferenciais')||'', redes_sociais: fd.get('redes_sociais')||'',
+    possui_site: fd.get('possui_site')||'', investe_anuncios: fd.get('investe_anuncios')||'',
+    frequencia_conteudo: fd.get('frequencia_conteudo')||'', percepcao_marca: fd.get('percepcao_marca')||'',
+    cores_estilos: fd.get('cores_estilos')||'', nao_quero: fd.get('nao_quero')||'',
+    responsavel_aprovacao: fd.get('responsavel_aprovacao')||'', melhor_contato: fd.get('melhor_contato')||'',
+    prazo_lancamento: fd.get('prazo_lancamento')||'', plano_escolhido: fd.get('plano_escolhido')||'',
+    forma_pagamento: fd.get('forma_pagamento')||'', data_inicio: fd.get('data_inicio')||'',
+  };
+  const cqSeen = {};
+  document.querySelectorAll('[name^="cq_"]').forEach(inp => {
+    if (inp.type==='checkbox') { if (!cqSeen[inp.name]) cqSeen[inp.name]=[]; if(inp.checked) cqSeen[inp.name].push(inp.value); }
+    else if (inp.type==='radio') { if(inp.checked) data[inp.name]=inp.value; }
+    else data[inp.name]=inp.value;
+  });
+  Object.keys(cqSeen).forEach(k => { data[k]=cqSeen[k].join(', '); });
+  try {
+    await window._saveBriefing(data);
+    ['briefingForm','progressWrap','stepsNav','introCard'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    document.getElementById('successCard').style.display = 'block';
+    window.scrollTo({top:0,behavior:'smooth'});
+  } catch(e) {
+    btn.textContent = 'Enviar Formulário ✓'; btn.disabled = false;
+    const msg = e?.code === 'permission-denied' ? 'Permissão negada. Contacte a DigitalCreate.' : (e?.message || String(e));
+    alert('Erro ao enviar:\n' + msg);
+  }
+}
+updateUI();
+function downloadFormPDF() {
+  const win = window.open('', '_blank', 'width=800,height=700');
+  if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
+  const form = document.getElementById('briefingForm');
+  const rows = [];
+  if (form) {
+    form.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),textarea,select').forEach(el => {
+      const label = el.closest('.field')?.querySelector('label')?.textContent?.split('\n')[0]?.trim() || el.name || '';
+      let val = '';
+      if (el.type === 'checkbox') { if (el.checked) val = el.value || '✓'; else return; }
+      else if (el.type === 'radio') { if (!el.checked) return; val = el.value; }
+      else val = el.value;
+      if (!val || !label) return;
+      rows.push({ label, val });
+    });
+  }
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const tableRows = rows.map(r => `<tr><td style="font-weight:600;color:#374151;padding:8px 12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;vertical-align:top;min-width:180px">${r.label}</td><td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827">${r.val.replace(/\n/g,'<br>')}</td></tr>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Formulário – Contrato</title><style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6}table{width:100%;border-collapse:collapse}td{font-size:10pt}</style></head><body><h1>📋 Formulário – Contrato</h1><p style="color:#6b7280;font-size:9pt;margin-bottom:20px">DigitalCreate • Gerado em ${now}</p><table>${tableRows}</table></body></html>`);
+  win.document.close();
+  setTimeout(() => { win.focus(); win.print(); }, 400);
+}
+</script>
+</body>
+</html>

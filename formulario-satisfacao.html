@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulário de Satisfação | DigitalCreate</title>
+<style>
+:root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1e1040 0%,#3b1f8c 45%,#7b2fb8 100%);min-height:100vh;color:var(--gray-900)}
+.header{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.header-brand{color:#fff;font-size:17px;font-weight:700}
+.header-sep{width:1px;height:22px;background:rgba(255,255,255,.25);margin:0 8px}
+.header-title{color:rgba(255,255,255,.65);font-size:13px}
+.progress-wrap{background:rgba(255,255,255,.05);padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.07)}
+.progress-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.progress-label{color:rgba(255,255,255,.6);font-size:12px}
+.progress-count{color:#fff;font-size:12px;font-weight:600}
+.progress-bar{height:4px;background:rgba(255,255,255,.13);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#06b6d4,#a855f7);border-radius:2px;transition:width .4s ease}
+.steps-nav{display:flex;gap:6px;padding:10px 24px;overflow-x:auto;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);scrollbar-width:none}
+.steps-nav::-webkit-scrollbar{display:none}
+.step-pill{flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.45);background:transparent;white-space:nowrap;transition:all .2s;user-select:none}
+.step-pill.active{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;border-color:transparent}
+.step-pill.done{background:rgba(168,85,247,.18);color:rgba(255,255,255,.75);border-color:rgba(168,85,247,.35)}
+.main{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+.intro-card{background:#fff;border-radius:20px;padding:44px 40px;text-align:center;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.intro-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(91,33,182,.08),rgba(168,85,247,.08));border:1px solid rgba(124,58,237,.18);color:#5b21b6;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:18px}
+.intro-card h1{font-size:27px;font-weight:800;color:var(--gray-900);margin-bottom:10px;line-height:1.2}
+.intro-card h1 span{background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-card p{color:var(--gray-600);font-size:14px;line-height:1.65;max-width:480px;margin:0 auto 24px}
+.intro-stats{display:flex;justify-content:center;gap:36px;margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-100)}
+.intro-stat strong{display:block;font-size:24px;font-weight:800;background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-stat span{font-size:11px;color:var(--gray-600)}
+.section-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.12);display:none;animation:fadeIn .35s ease}
+.section-card.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:2px solid var(--gray-100)}
+.section-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#5b21b6,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.section-info h2{font-size:19px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.section-info p{font-size:13px;color:var(--gray-600);line-height:1.5}
+.field{margin-bottom:26px}
+.field label{display:block;font-size:13.5px;font-weight:600;color:var(--gray-700);margin-bottom:8px;line-height:1.45}
+.field label .req{color:#ef4444;margin-left:2px}
+.field input[type="text"],.field input[type="email"],.field textarea{width:100%;padding:11px 15px;border:2px solid var(--gray-200);border-radius:10px;font-size:13.5px;font-family:inherit;color:var(--gray-900);background:var(--gray-50);transition:all .2s;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.field textarea{min-height:96px}
+/* STAR RATING */
+.star-row{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:var(--gray-50);border:2px solid var(--gray-200);border-radius:12px;margin-bottom:10px;gap:16px;transition:border-color .2s}
+.star-row:hover{border-color:#e9d5ff}
+.star-row-label{font-size:13.5px;font-weight:600;color:var(--gray-700);flex:1}
+.stars{display:flex;gap:4px;flex-shrink:0}
+.star{font-size:28px;cursor:pointer;color:#d1d5db;transition:color .15s;line-height:1;user-select:none}
+.star:hover,.star.lit{color:#f59e0b}
+.star-labels{display:flex;justify-content:space-between;padding:0 2px;margin-top:4px}
+.star-lbl{font-size:10px;color:var(--gray-600)}
+.options-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.option-chip{display:flex;align-items:center;gap:6px;padding:7px 13px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--gray-700);background:#fff;transition:all .2s;user-select:none}
+.option-chip input{display:none}
+.option-chip:hover{border-color:#7c3aed;color:#5b21b6;background:rgba(124,58,237,.04)}
+.option-chip.selected{background:linear-gradient(135deg,#5b21b6,#7c3aed);border-color:transparent;color:#fff}
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:22px;border-top:2px solid var(--gray-100)}
+.btn{padding:11px 26px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
+.btn-back{background:var(--gray-100);color:var(--gray-700)}
+.btn-back:hover{background:var(--gray-200)}
+.btn-next{background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.btn-next:hover{transform:translateY(-1px)}
+.btn-submit{background:linear-gradient(135deg,#06b6d4,#5b21b6);color:#fff;padding:12px 32px;font-size:14px;box-shadow:0 4px 18px rgba(6,182,212,.35)}
+.btn-submit:hover{transform:translateY(-2px)}
+.success-card{background:#fff;border-radius:20px;padding:64px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);display:none}
+.success-icon{width:80px;height:80px;background:linear-gradient(135deg,#06b6d4,#a855f7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px}
+.success-card h2{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px}
+.success-card p{color:var(--gray-600);font-size:14px;line-height:1.65}
+@media(max-width:600px){.section-card,.intro-card{padding:24px 18px}.intro-card h1{font-size:22px}.intro-stats{gap:20px}.section-header{flex-direction:column;gap:10px}.star-row{flex-direction:column;align-items:flex-start;gap:10px}}
+.field.v-error input,.field.v-error textarea,.field.v-error select{border-color:#ef4444!important;background:#fff5f5!important}
+.field.v-error .options-group .option-chip{border-color:#ef4444}
+.field-err-msg{font-size:11.5px;color:#ef4444;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:4px}
+.sec-err-banner{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#b91c1c;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:10px;animation:shakeX .4s ease}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.step-pill.has-err{border-color:#ef4444!important;color:#ef4444!important;background:rgba(239,68,68,.08)!important}
+</style>
+</head>
+<body>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, addDoc, collection, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app = initializeApp({ apiKey:"AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg", authDomain:"crm-digitalcreate.firebaseapp.com", projectId:"crm-digitalcreate" });
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+(async () => {
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
+  try {
+    const snap = await getDoc(doc(db, 'crm_form_config', 'satisfacao'));
+    const qs = snap.exists() ? (snap.data().questions || []) : [];
+    if (qs.length) {
+      const lastNavBtns = Array.from(document.querySelectorAll('.nav-btns')).pop();
+      if (lastNavBtns) {
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-top:20px;padding-top:20px;border-top:2px solid var(--gray-100,#f3f4f6)';
+        div.innerHTML = `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:14px">✨ Perguntas adicionais</div>` +
+          qs.map(q => {
+            const req = q.required ? ' required' : '';
+            const reqMark = q.required ? ' <span style="color:#ef4444">*</span>' : '';
+            const hint = q.hint ? `<span class="hint">${q.hint}</span>` : '';
+            if (q.type==='text')     return `<div class="field"><label>${q.label}${reqMark}${hint}</label><input type="text" name="cq_${q.id}"${req}></div>`;
+            if (q.type==='textarea') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><textarea name="cq_${q.id}"${req}></textarea></div>`;
+            if (q.type==='radio')    return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="radio" name="cq_${q.id}" value="${o}"${req} onchange="selectChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            if (q.type==='checkbox') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="checkbox" name="cq_${q.id}" value="${o}" onchange="toggleCheckChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            return '';
+          }).join('');
+        lastNavBtns.before(div);
+      }
+    }
+  } catch(e) { console.warn('Custom questions load:', e); }
+})();
+
+window._saveBriefing = async (data) => {
+  const payload = { ...data, submittedAt: new Date().toISOString(), type: 'satisfacao' };
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(authErr) { console.warn('Auth:', authErr.code); }
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Tempo esgotado após 15 segundos.')), 15000));
+  await Promise.race([addDoc(collection(db, 'crm_briefings'), payload), timeout]);
+};
+</script>
+
+<div class="header">
+  <span class="header-brand">DigitalCreate</span>
+  <div class="header-sep"></div>
+  <span class="header-title">Formulário de Satisfação</span>
+</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-top">
+    <span class="progress-label">Progresso</span>
+    <span class="progress-count" id="progressCount">Seção 1 de 4</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:25%"></div></div>
+</div>
+
+<div class="steps-nav" id="stepsNav">
+  <div class="step-pill active" onclick="goTo(0)">Identificação</div>
+  <div class="step-pill" onclick="goTo(1)">Avaliações ⭐</div>
+  <div class="step-pill" onclick="goTo(2)">Perguntas Abertas</div>
+  <div class="step-pill" onclick="goTo(3)">Extras</div>
+</div>
+
+<div class="main">
+  <div class="intro-card" id="introCard">
+    <div class="intro-badge">Sua opinião importa ⭐</div>
+    <h1>Formulário de <span>Satisfação</span></h1>
+    <p>Sua avaliação nos ajuda a melhorar cada vez mais. Leva menos de 5 minutos e faz toda a diferença para nós!</p>
+    <div class="intro-stats">
+      <div class="intro-stat"><strong>4</strong><span>Seções</span></div>
+      <div class="intro-stat"><strong>18</strong><span>Questões</span></div>
+      <div class="intro-stat"><strong>~5 min</strong><span>Estimado</span></div>
+    </div>
+  </div>
+
+  <form id="briefingForm" onsubmit="return false">
+
+  <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
+  <div class="section-card active" id="section-0">
+    <div class="section-header">
+      <div class="section-icon">👤</div>
+      <div class="section-info"><h2>Identificação</h2><p>Precisamos saber quem está avaliando para contextualizar melhor o feedback.</p></div>
+    </div>
+    <div class="field"><label>Seu nome <span class="req">*</span></label><input type="text" name="nome_cliente" placeholder="Ex: Maria Silva" required></div>
+    <div class="field"><label>Nome da sua empresa</label><input type="text" name="empresa_cliente" placeholder="Ex: Clínica Bem Estar"></div>
+    <div class="field"><label>Qual serviço está avaliando? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="servico_avaliado" value="Gestão de Tráfego Pago" onchange="selectChip(this)"><span>Tráfego Pago</span></label>
+        <label class="option-chip"><input type="radio" name="servico_avaliado" value="Google Meu Negócio" onchange="selectChip(this)"><span>Google Meu Negócio</span></label>
+        <label class="option-chip"><input type="radio" name="servico_avaliado" value="Social Media" onchange="selectChip(this)"><span>Social Media</span></label>
+        <label class="option-chip"><input type="radio" name="servico_avaliado" value="SEO" onchange="selectChip(this)"><span>SEO</span></label>
+        <label class="option-chip"><input type="radio" name="servico_avaliado" value="Criação de Site" onchange="selectChip(this)"><span>Criação de Site</span></label>
+        <label class="option-chip"><input type="radio" name="servico_avaliado" value="Consultoria" onchange="selectChip(this)"><span>Consultoria</span></label>
+        <label class="option-chip"><input type="radio" name="servico_avaliado" value="Outro" onchange="selectChip(this)"><span>Outro</span></label>
+      </div>
+    </div>
+    <div class="nav-btns"><span></span><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 2: AVALIAÇÕES COM ESTRELAS -->
+  <div class="section-card" id="section-1">
+    <div class="section-header">
+      <div class="section-icon">⭐</div>
+      <div class="section-info"><h2>Avaliações</h2><p>Avalie cada aspecto do nosso serviço de 1 a 5 estrelas.</p></div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,rgba(91,33,182,.05),rgba(168,85,247,.05));border:1px solid rgba(124,58,237,.15);border-radius:12px;padding:14px 18px;margin-bottom:24px;font-size:12.5px;color:var(--gray-600)">
+      ⭐ Clique nas estrelas para avaliar. <strong style="color:#5b21b6">1 = Muito ruim &nbsp;|&nbsp; 5 = Excelente</strong>
+    </div>
+
+    <div id="star-ratings">
+      <!-- gerado por JS -->
+    </div>
+
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 3: PERGUNTAS ABERTAS -->
+  <div class="section-card" id="section-2">
+    <div class="section-header">
+      <div class="section-icon">💬</div>
+      <div class="section-info"><h2>Perguntas Abertas</h2><p>Sua opinião detalhada é muito valiosa para nós.</p></div>
+    </div>
+    <div class="field"><label>O que você mais gostou no serviço? <span class="req">*</span></label><textarea name="mais_gostou" placeholder="Ex: A atenção ao detalhe, a comunicação rápida, os resultados que vieram logo..." required></textarea></div>
+    <div class="field"><label>Houve algo que poderia ter sido melhor?</label><textarea name="poderia_melhorar" placeholder="Ex: Poderia ter mais frequência de relatórios, resposta mais rápida..."></textarea></div>
+    <div class="field"><label>Você indicaria nosso serviço para outras pessoas? Por quê? <span class="req">*</span></label><textarea name="indicaria" placeholder="Ex: Sim, com certeza! Porque os resultados foram acima do esperado..." required></textarea></div>
+    <div class="field"><label>Qual foi o maior resultado ou benefício que você percebeu? <span class="req">*</span></label><textarea name="maior_resultado" placeholder="Ex: Aumento de 40% no faturamento, mais clientes chegando pelo Google..." required></textarea></div>
+    <div class="field"><label>Existe algo que você gostaria que fosse oferecido no futuro?</label><textarea name="futuro" placeholder="Ex: Criação de conteúdo para TikTok, relatórios semanais..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 4: EXTRAS -->
+  <div class="section-card" id="section-3">
+    <div class="section-header">
+      <div class="section-icon">💡</div>
+      <div class="section-info"><h2>Extras Estratégicos</h2><p>Informações que nos ajudam a continuar crescendo juntos.</p></div>
+    </div>
+    <div class="field"><label>Você pretende continuar investindo nesse tipo de serviço? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="continua_investindo" value="Sim, com certeza" onchange="selectChip(this)"><span>Sim, com certeza</span></label>
+        <label class="option-chip"><input type="radio" name="continua_investindo" value="Provavelmente sim" onchange="selectChip(this)"><span>Provavelmente sim</span></label>
+        <label class="option-chip"><input type="radio" name="continua_investindo" value="Ainda não sei" onchange="selectChip(this)"><span>Ainda não sei</span></label>
+        <label class="option-chip"><input type="radio" name="continua_investindo" value="Provavelmente não" onchange="selectChip(this)"><span>Provavelmente não</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Qual seria o próximo passo ideal para o seu negócio?</label><textarea name="proximo_passo" placeholder="Ex: Expandir para outras plataformas, criar um site, lançar um produto novo..."></textarea></div>
+    <div class="field"><label>Podemos utilizar seu feedback como depoimento? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="usar_feedback" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="usar_feedback" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Autoriza o uso do seu nome/marca para divulgação? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="autoriza_nome" value="Sim, pode usar meu nome e empresa" onchange="selectChip(this)"><span>Sim, pode usar</span></label>
+        <label class="option-chip"><input type="radio" name="autoriza_nome" value="Só o nome, sem empresa" onchange="selectChip(this)"><span>Só o nome</span></label>
+        <label class="option-chip"><input type="radio" name="autoriza_nome" value="Prefiro manter anônimo" onchange="selectChip(this)"><span>Prefiro anônimo</span></label>
+      </div>
+    </div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Avaliação ✓</button></div>
+  </div>
+
+  <!-- campos hidden para notas das estrelas -->
+  <input type="hidden" id="val-exp_geral" name="exp_geral" value="">
+  <input type="hidden" id="val-qualidade" name="qualidade" value="">
+  <input type="hidden" id="val-comunicacao" name="comunicacao" value="">
+  <input type="hidden" id="val-prazo" name="prazo" value="">
+  <input type="hidden" id="val-resultado" name="resultado" value="">
+  <input type="hidden" id="val-atendimento" name="atendimento" value="">
+  <input type="hidden" id="val-facilidade" name="facilidade" value="">
+
+  </form>
+
+  <div class="success-card" id="successCard">
+    <div class="success-icon">🙏</div>
+    <h2>Obrigada pela sua avaliação!</h2>
+    <p>Seu feedback é muito importante para continuarmos evoluindo. A equipe DigitalCreate agradece a confiança! ⭐</p>
+    <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px;align-items:center">
+      <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia das suas respostas:</strong></p>
+      <button onclick="downloadFormPDF()" style="background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,58,237,.35)">📄 Baixar PDF das respostas</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let current = 0;
+const total = 4;
+
+const STAR_ITEMS = [
+  { key: 'exp_geral',   label: 'Experiência geral com o serviço' },
+  { key: 'qualidade',   label: 'Qualidade do serviço entregue' },
+  { key: 'comunicacao', label: 'Clareza e rapidez na comunicação' },
+  { key: 'prazo',       label: 'Cumprimento dos prazos' },
+  { key: 'resultado',   label: 'Satisfação com os resultados' },
+  { key: 'atendimento', label: 'Qualidade do atendimento' },
+  { key: 'facilidade',  label: 'Facilidade em acompanhar o serviço' },
+];
+
+function buildStarRatings() {
+  const container = document.getElementById('star-ratings');
+  container.innerHTML = STAR_ITEMS.map(item => `
+    <div class="star-row">
+      <div class="star-row-label">${item.label}</div>
+      <div>
+        <div class="stars stars-${item.key}">
+          ${[1,2,3,4,5].map(v => `<span class="star" data-key="${item.key}" data-val="${v}" onclick="rateStar('${item.key}',${v})">★</span>`).join('')}
+        </div>
+        <div class="star-labels"><span class="star-lbl">Muito ruim</span><span class="star-lbl">Excelente</span></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function rateStar(key, value) {
+  document.querySelectorAll(`.stars-${key} .star`).forEach((s, i) => {
+    s.classList.toggle('lit', i < value);
+  });
+  document.getElementById(`val-${key}`).value = value;
+}
+
+function updateUI() {
+  const pct = Math.round(((current + 1) / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `Seção ${current + 1} de ${total}`;
+  document.querySelectorAll('.step-pill').forEach((p, i) => { p.classList.remove('active','done'); if(i===current) p.classList.add('active'); else if(i<current) p.classList.add('done'); });
+  document.getElementById('introCard').style.display = current === 0 ? 'block' : 'none';
+}
+
+function goTo(idx) {
+  document.getElementById(`section-${current}`).classList.remove('active');
+  current = Math.max(0, Math.min(total - 1, idx));
+  document.getElementById(`section-${current}`).classList.add('active');
+  updateUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+const _secTitles = ['Identificação','Avaliações','Perguntas Abertas','Extras Estratégicos'];
+
+function _clearErrors() {
+  document.querySelectorAll('.field.v-error').forEach(f => { f.classList.remove('v-error'); f.querySelector('.field-err-msg')?.remove(); });
+  document.querySelectorAll('.sec-err-banner').forEach(b => b.remove());
+  document.querySelectorAll('.step-pill.has-err').forEach(p => p.classList.remove('has-err'));
+}
+function _markError(field, msg) {
+  field.classList.add('v-error');
+  if (!field.querySelector('.field-err-msg')) { const el = document.createElement('div'); el.className = 'field-err-msg'; el.innerHTML = '⚠ ' + msg; field.appendChild(el); }
+}
+function _validateSection(idx) {
+  const sec = document.getElementById('section-' + idx);
+  if (!sec) return true;
+  const errFields = [];
+  sec.querySelectorAll('.field').forEach(field => {
+    const inputs = field.querySelectorAll('input,textarea,select');
+    let required = false;
+    inputs.forEach(inp => { if (inp.required) required = true; });
+    if (!required) return;
+    let filled = false;
+    const radios = field.querySelectorAll('input[type=radio]');
+    const checks = field.querySelectorAll('input[type=checkbox]');
+    if (radios.length) { filled = [...radios].some(r => r.checked); }
+    else if (checks.length && checks[0].required) { filled = [...checks].some(c => c.checked); }
+    else { const inp = field.querySelector('input:not([type=radio]):not([type=checkbox]),textarea,select'); filled = inp && inp.value.trim() !== ''; }
+    if (!filled) {
+      const lbl = field.querySelector('label')?.childNodes[0]?.textContent?.trim() || 'Campo obrigatório';
+      _markError(field, lbl + ' é obrigatório');
+      errFields.push(lbl);
+    }
+  });
+  if (errFields.length) {
+    const pill = document.querySelectorAll('.step-pill')[idx];
+    if (pill) pill.classList.add('has-err');
+    if (!sec.querySelector('.sec-err-banner')) {
+      const banner = document.createElement('div');
+      banner.className = 'sec-err-banner';
+      banner.innerHTML = '⚠️ <div><strong>Seção ' + (idx+1) + ': ' + (_secTitles[idx]||'') + '</strong> — Preencha os campos obrigatórios:<br><span style="font-weight:400">' + errFields.join(', ') + '</span></div>';
+      sec.insertBefore(banner, sec.querySelector('.section-header') || sec.firstChild);
+    }
+    return false;
+  }
+  return true;
+}
+function _validateAll() {
+  _clearErrors();
+  let firstErr = -1;
+  for (let i = 0; i < total; i++) { const ok = _validateSection(i); if (!ok && firstErr === -1) firstErr = i; }
+  if (firstErr !== -1) { goTo(firstErr); return false; }
+  return true;
+}
+
+function nextSection() { if (_validateSection(current)) goTo(current + 1); }
+function prevSection() { goTo(current - 1); }
+function selectChip(radio) { radio.closest('.options-group').querySelectorAll('.option-chip').forEach(c=>c.classList.remove('selected')); radio.closest('.option-chip').classList.add('selected'); }
+
+async function submitForm() {
+  const form = document.getElementById('briefingForm');
+  if (!_validateAll()) return;
+  const btn = form.querySelector('.btn-submit');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+  const fd = new FormData(form);
+  const data = {
+    nome_cliente: fd.get('nome_cliente')||'',
+    empresa_cliente: fd.get('empresa_cliente')||'',
+    servico_avaliado: fd.get('servico_avaliado')||'',
+    exp_geral: fd.get('exp_geral')||'',
+    qualidade: fd.get('qualidade')||'',
+    comunicacao: fd.get('comunicacao')||'',
+    prazo: fd.get('prazo')||'',
+    resultado: fd.get('resultado')||'',
+    atendimento: fd.get('atendimento')||'',
+    facilidade: fd.get('facilidade')||'',
+    mais_gostou: fd.get('mais_gostou')||'',
+    poderia_melhorar: fd.get('poderia_melhorar')||'',
+    indicaria: fd.get('indicaria')||'',
+    maior_resultado: fd.get('maior_resultado')||'',
+    futuro: fd.get('futuro')||'',
+    continua_investindo: fd.get('continua_investindo')||'',
+    proximo_passo: fd.get('proximo_passo')||'',
+    usar_feedback: fd.get('usar_feedback')||'',
+    autoriza_nome: fd.get('autoriza_nome')||'',
+  };
+  const cqSeen = {};
+  document.querySelectorAll('[name^="cq_"]').forEach(inp => {
+    if (inp.type==='checkbox') { if (!cqSeen[inp.name]) cqSeen[inp.name]=[]; if(inp.checked) cqSeen[inp.name].push(inp.value); }
+    else if (inp.type==='radio') { if(inp.checked) data[inp.name]=inp.value; }
+    else data[inp.name]=inp.value;
+  });
+  Object.keys(cqSeen).forEach(k => { data[k]=cqSeen[k].join(', '); });
+  try {
+    await window._saveBriefing(data);
+    ['briefingForm','progressWrap','stepsNav','introCard'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    document.getElementById('successCard').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch(e) {
+    btn.textContent = 'Enviar Avaliação ✓'; btn.disabled = false;
+    const msg = e?.code === 'permission-denied' ? 'Permissão negada. Contacte a DigitalCreate.' : (e?.message || String(e));
+    alert('Erro ao enviar:\n' + msg);
+  }
+}
+
+buildStarRatings();
+updateUI();
+function downloadFormPDF() {
+  const win = window.open('', '_blank', 'width=800,height=700');
+  if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
+  const form = document.getElementById('briefingForm');
+  const rows = [];
+  if (form) {
+    form.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),textarea,select').forEach(el => {
+      const label = el.closest('.field')?.querySelector('label')?.textContent?.split('\n')[0]?.trim() || el.name || '';
+      let val = '';
+      if (el.type === 'checkbox') { if (el.checked) val = el.value || '✓'; else return; }
+      else if (el.type === 'radio') { if (!el.checked) return; val = el.value; }
+      else val = el.value;
+      if (!val || !label) return;
+      rows.push({ label, val });
+    });
+  }
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const tableRows = rows.map(r => `<tr><td style="font-weight:600;color:#374151;padding:8px 12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;vertical-align:top;min-width:180px">${r.label}</td><td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827">${r.val.replace(/\n/g,'<br>')}</td></tr>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Formulário – Satisfação</title><style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6}table{width:100%;border-collapse:collapse}td{font-size:10pt}</style></head><body><h1>📋 Formulário de Satisfação</h1><p style="color:#6b7280;font-size:9pt;margin-bottom:20px">DigitalCreate • Gerado em ${now}</p><table>${tableRows}</table></body></html>`);
+  win.document.close();
+  setTimeout(() => { win.focus(); win.print(); }, 400);
+}
+</script>
+</body>
+</html>

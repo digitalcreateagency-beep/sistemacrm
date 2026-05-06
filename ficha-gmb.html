@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ficha Empresarial – Google Meu Negócio | DigitalCreate</title>
+<style>
+:root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1e1040 0%,#3b1f8c 45%,#7b2fb8 100%);min-height:100vh;color:var(--gray-900)}
+.header{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.header-brand{color:#fff;font-size:17px;font-weight:700}
+.header-sep{width:1px;height:22px;background:rgba(255,255,255,.25);margin:0 8px}
+.header-title{color:rgba(255,255,255,.65);font-size:13px}
+.progress-wrap{background:rgba(255,255,255,.05);padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.07)}
+.progress-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.progress-label{color:rgba(255,255,255,.6);font-size:12px}
+.progress-count{color:#fff;font-size:12px;font-weight:600}
+.progress-bar{height:4px;background:rgba(255,255,255,.13);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#06b6d4,#a855f7);border-radius:2px;transition:width .4s ease}
+.steps-nav{display:flex;gap:6px;padding:10px 24px;overflow-x:auto;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);scrollbar-width:none}
+.steps-nav::-webkit-scrollbar{display:none}
+.step-pill{flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.45);background:transparent;white-space:nowrap;transition:all .2s;user-select:none}
+.step-pill.active{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;border-color:transparent}
+.step-pill.done{background:rgba(168,85,247,.18);color:rgba(255,255,255,.75);border-color:rgba(168,85,247,.35)}
+.main{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+.intro-card{background:#fff;border-radius:20px;padding:44px 40px;text-align:center;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.intro-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(91,33,182,.08),rgba(168,85,247,.08));border:1px solid rgba(124,58,237,.18);color:#5b21b6;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:18px}
+.intro-card h1{font-size:27px;font-weight:800;color:var(--gray-900);margin-bottom:10px;line-height:1.2}
+.intro-card h1 span{background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-card p{color:var(--gray-600);font-size:14px;line-height:1.65;max-width:480px;margin:0 auto 24px}
+.intro-stats{display:flex;justify-content:center;gap:36px;margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-100)}
+.intro-stat strong{display:block;font-size:24px;font-weight:800;background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-stat span{font-size:11px;color:var(--gray-600)}
+.section-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.12);display:none;animation:fadeIn .35s ease}
+.section-card.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:2px solid var(--gray-100)}
+.section-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#5b21b6,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.section-info h2{font-size:19px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.section-info p{font-size:13px;color:var(--gray-600);line-height:1.5}
+.field{margin-bottom:22px}
+.field label{display:block;font-size:13.5px;font-weight:600;color:var(--gray-700);margin-bottom:6px;line-height:1.45}
+.field label .req{color:#ef4444;margin-left:2px}
+.field label .hint{display:block;font-size:11.5px;font-weight:400;color:var(--gray-600);margin-top:2px;line-height:1.4}
+.field input[type="text"],.field input[type="email"],.field input[type="tel"],.field input[type="date"],.field textarea,.field select{width:100%;padding:11px 15px;border:2px solid var(--gray-200);border-radius:10px;font-size:13.5px;font-family:inherit;color:var(--gray-900);background:var(--gray-50);transition:all .2s;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.field textarea{min-height:96px}
+.field textarea.tall{min-height:120px}
+.options-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.option-chip{display:flex;align-items:center;gap:6px;padding:7px 13px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--gray-700);background:#fff;transition:all .2s;user-select:none}
+.option-chip input{display:none}
+.option-chip:hover{border-color:#7c3aed;color:#5b21b6;background:rgba(124,58,237,.04)}
+.option-chip.selected{background:linear-gradient(135deg,#5b21b6,#7c3aed);border-color:transparent;color:#fff}
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:22px;border-top:2px solid var(--gray-100)}
+.btn{padding:11px 26px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
+.btn-back{background:var(--gray-100);color:var(--gray-700)}
+.btn-back:hover{background:var(--gray-200)}
+.btn-next{background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.45)}
+.btn-submit{background:linear-gradient(135deg,#06b6d4,#5b21b6);color:#fff;padding:12px 32px;font-size:14px;box-shadow:0 4px 18px rgba(6,182,212,.35)}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(6,182,212,.45)}
+.success-card{background:#fff;border-radius:20px;padding:64px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);display:none}
+.success-icon{width:80px;height:80px;background:linear-gradient(135deg,#06b6d4,#a855f7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px}
+.success-card h2{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px}
+.success-card p{color:var(--gray-600);font-size:14px;line-height:1.65}
+@media(max-width:600px){.section-card,.intro-card{padding:24px 18px}.intro-card h1{font-size:22px}.intro-stats{gap:20px}.section-header{flex-direction:column;gap:10px}}
+.field.v-error input,.field.v-error textarea,.field.v-error select{border-color:#ef4444!important;background:#fff5f5!important}
+.field.v-error .options-group .option-chip{border-color:#ef4444}
+.field-err-msg{font-size:11.5px;color:#ef4444;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:4px}
+.sec-err-banner{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#b91c1c;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:10px;animation:shakeX .4s ease}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.step-pill.has-err{border-color:#ef4444!important;color:#ef4444!important;background:rgba(239,68,68,.08)!important}
+</style>
+</head>
+<body>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, addDoc, collection, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app = initializeApp({ apiKey:"AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg", authDomain:"crm-digitalcreate.firebaseapp.com", projectId:"crm-digitalcreate" });
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+(async () => {
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
+  try {
+    const snap = await getDoc(doc(db, 'crm_form_config', 'gmb'));
+    const qs = snap.exists() ? (snap.data().questions || []) : [];
+    if (qs.length) {
+      const lastNavBtns = Array.from(document.querySelectorAll('.nav-btns')).pop();
+      if (lastNavBtns) {
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-top:20px;padding-top:20px;border-top:2px solid var(--gray-100,#f3f4f6)';
+        div.innerHTML = `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:14px">✨ Perguntas adicionais</div>` +
+          qs.map(q => {
+            const req = q.required ? ' required' : '';
+            const reqMark = q.required ? ' <span style="color:#ef4444">*</span>' : '';
+            const hint = q.hint ? `<span class="hint">${q.hint}</span>` : '';
+            if (q.type==='text')     return `<div class="field"><label>${q.label}${reqMark}${hint}</label><input type="text" name="cq_${q.id}"${req}></div>`;
+            if (q.type==='textarea') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><textarea name="cq_${q.id}"${req}></textarea></div>`;
+            if (q.type==='radio')    return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="radio" name="cq_${q.id}" value="${o}"${req} onchange="selectChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            if (q.type==='checkbox') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="checkbox" name="cq_${q.id}" value="${o}" onchange="toggleCheckChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            return '';
+          }).join('');
+        lastNavBtns.before(div);
+      }
+    }
+  } catch(e) { console.warn('Custom questions load:', e); }
+})();
+
+window._saveBriefing = async (data) => {
+  const payload = { ...data, submittedAt: new Date().toISOString(), type: 'gmb' };
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(authErr) { console.warn('Auth:', authErr.code); }
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Tempo esgotado após 15 segundos.')), 15000));
+  await Promise.race([addDoc(collection(db, 'crm_briefings'), payload), timeout]);
+};
+</script>
+
+<div class="header">
+  <span class="header-brand">DigitalCreate</span>
+  <div class="header-sep"></div>
+  <span class="header-title">Ficha Empresarial – Google Meu Negócio</span>
+</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-top">
+    <span class="progress-label">Progresso do preenchimento</span>
+    <span class="progress-count" id="progressCount">Seção 1 de 7</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:14%"></div></div>
+</div>
+
+<div class="steps-nav" id="stepsNav">
+  <div class="step-pill active" onclick="goTo(0)">Identificação</div>
+  <div class="step-pill" onclick="goTo(1)">Negócio</div>
+  <div class="step-pill" onclick="goTo(2)">Digital &amp; Concorrência</div>
+  <div class="step-pill" onclick="goTo(3)">Localização</div>
+  <div class="step-pill" onclick="goTo(4)">Funcionamento</div>
+  <div class="step-pill" onclick="goTo(5)">Acessibilidade</div>
+  <div class="step-pill" onclick="goTo(6)">Serviços e Extras</div>
+</div>
+
+<div class="main">
+  <div class="intro-card" id="introCard">
+    <div class="intro-badge">Ficha Completa</div>
+    <h1>Ficha Empresarial <span>Google Meu Negócio</span></h1>
+    <p>Preencha com o máximo de detalhes. Quanto mais completo, melhor será o resultado da otimização do seu perfil!</p>
+    <div class="intro-stats">
+      <div class="intro-stat"><strong>7</strong><span>Seções</span></div>
+      <div class="intro-stat"><strong>30</strong><span>Questões</span></div>
+      <div class="intro-stat"><strong>~10 min</strong><span>Estimado</span></div>
+    </div>
+  </div>
+
+  <form id="briefingForm" onsubmit="return false">
+
+  <!-- SEÇÃO 1: IDENTIFICAÇÃO -->
+  <div class="section-card active" id="section-0">
+    <div class="section-header">
+      <div class="section-icon">01</div>
+      <div class="section-info"><h2>Identificação</h2><p>Dados básicos da empresa para a ficha do Google.</p></div>
+    </div>
+    <div class="field"><label>Nome da empresa <span class="req">*</span></label><input type="text" name="nome_empresa" placeholder="Ex: Clínica Aura Bem" required></div>
+    <div class="field"><label>Endereço completo <span class="req">*</span><span class="hint">Rua, número, bairro, cidade, estado, CEP</span></label><input type="text" name="endereco" placeholder="Ex: Rua das Flores, 123 – Centro – São Paulo/SP – 01000-000" required></div>
+    <div class="field"><label>E-mail profissional <span class="req">*</span></label><input type="email" name="email" placeholder="contato@suaempresa.com.br" required></div>
+    <div class="field"><label>Telefone fixo e WhatsApp para a ficha <span class="req">*</span></label><input type="tel" name="telefone" placeholder="(11) 99999-9999 / (11) 3333-3333" required></div>
+    <div class="field"><label>Data de abertura da empresa<span class="hint">Mês e ano de fundação</span></label><input type="text" name="data_abertura" placeholder="Ex: Janeiro de 2018"></div>
+    <div class="nav-btns"><span></span><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 2: NEGÓCIO -->
+  <div class="section-card" id="section-1">
+    <div class="section-header">
+      <div class="section-icon">02</div>
+      <div class="section-info"><h2>Sobre o Negócio</h2><p>Informações para posicionar sua empresa corretamente no Google.</p></div>
+    </div>
+    <div class="field"><label>Quais categorias seu negócio se encaixa? <span class="req">*</span><span class="hint">Ex: Clínica de estética, Consultório odontológico, Loja de roupas</span></label><textarea name="categorias" placeholder="Liste as categorias que melhor descrevem seu negócio..." required></textarea></div>
+    <div class="field"><label>Qual palavra um cliente usaria para te achar no Google? <span class="req">*</span></label><input type="text" name="palavra_chave" placeholder="Ex: dentista em São Paulo, clínica estética zona sul" required></div>
+    <div class="field"><label>Quais são suas especialidades? <span class="req">*</span><span class="hint">Descreva com o máximo de detalhes possíveis</span></label><textarea name="especialidades" class="tall" placeholder="Ex: Harmonização facial, botox, preenchimento labial, limpeza de pele..." required></textarea></div>
+    <div class="field"><label>Se você fosse seu cliente, como pesquisaria pelo seu produto/serviço no Google? <span class="req">*</span></label><textarea name="busca_cliente" placeholder="Ex: 'melhor dentista perto de mim', 'clínica de estética com preço justo'..." required></textarea></div>
+    <div class="field"><label>Como esse produto/serviço pode ajudar na vida do seu cliente? <span class="req">*</span></label><textarea name="ajuda_cliente" placeholder="Ex: Recupera a autoestima, resolve dor de dente sem sofrimento..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 3: DIGITAL E CONCORRÊNCIA -->
+  <div class="section-card" id="section-2">
+    <div class="section-header">
+      <div class="section-icon">03</div>
+      <div class="section-info"><h2>Presença Digital e Concorrência</h2><p>Suas redes e quem mais disputa seu espaço no Google.</p></div>
+    </div>
+    <div class="field"><label>@ do Instagram, Facebook, site ou link da ficha atual? <span class="req">*</span></label><textarea name="redes_sociais" placeholder="Instagram: @suaempresa&#10;Facebook: facebook.com/suaempresa&#10;Site: www.suaempresa.com.br" required></textarea></div>
+    <div class="field"><label>Você possui site? Se sim, qual o link?</label><input type="text" name="possui_site" placeholder="www.suaempresa.com.br (ou 'Não possuo')"></div>
+    <div class="field"><label>Quais são seus maiores concorrentes? <span class="req">*</span></label><textarea name="concorrentes" placeholder="Ex: Clínica X, Studio Y, Academia Z..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 4: LOCALIZAÇÃO -->
+  <div class="section-card" id="section-3">
+    <div class="section-header">
+      <div class="section-icon">04</div>
+      <div class="section-info"><h2>Localização e Cobertura</h2><p>Onde você está e onde quer aparecer.</p></div>
+    </div>
+    <div class="field"><label>Qual a localização exata da sua empresa?<span class="hint">Bairro, cidade, referências próximas</span></label><input type="text" name="localizacao" placeholder="Ex: Próximo ao Shopping X, Bairro Centro, São Paulo/SP"></div>
+    <div class="field"><label>Quais áreas de cobertura/regiões você quer aparecer ou prestar serviços? <span class="req">*</span></label><textarea name="areas_cobertura" placeholder="Ex: Zona Sul de SP, cidades de Santos e Guarujá, toda a Grande São Paulo..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 5: FUNCIONAMENTO -->
+  <div class="section-card" id="section-4">
+    <div class="section-header">
+      <div class="section-icon">05</div>
+      <div class="section-info"><h2>Horário de Funcionamento</h2><p>Informe todos os horários para manter a ficha atualizada.</p></div>
+    </div>
+    <div class="field"><label>Horário de funcionamento <span class="req">*</span><span class="hint">Se há horário de almoço fechado, inclua. Ex: Seg a Sex: 8h–12h / 14h–18h | Sáb: 8h–12h</span></label><textarea name="horario" placeholder="Segunda a Sexta: 8h às 18h&#10;Sábado: 8h às 12h&#10;Domingo: Fechado" required></textarea></div>
+    <div class="field"><label>Horários especiais – Atende em feriados?<span class="hint">Se sim, informe qual o horário</span></label><textarea name="horario_especial" placeholder="Ex: Feriados nacionais: Fechado. Carnaval: Fechado. Natal: 8h–12h..."></textarea></div>
+    <div class="field"><label>Oferece agendamento on-line? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="agendamento_online" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="agendamento_online" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Quais idiomas de atendimento estão disponíveis?</label><input type="text" name="idiomas" placeholder="Ex: Português, Inglês, Espanhol"></div>
+    <div class="field"><label>Se identifica como empresa de empreendedoras?</label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="empreendedoras" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="empreendedoras" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 6: ACESSIBILIDADE -->
+  <div class="section-card" id="section-5">
+    <div class="section-header">
+      <div class="section-icon">06</div>
+      <div class="section-info"><h2>Acessibilidade e Estacionamento</h2><p>Recursos disponíveis para clientes com necessidades especiais.</p></div>
+    </div>
+    <div class="field"><label>Aro de indução magnética? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="aro_inducao" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="aro_inducao" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
+    <div class="field"><label>Entrada com acessibilidade? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="entrada_acessivel" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="entrada_acessivel" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
+    <div class="field"><label>Dispositivos para auxílio a deficientes auditivos? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="dispositivos_auditivos" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="dispositivos_auditivos" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
+    <div class="field"><label>Assento acessível para cadeira de rodas? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="assento_cadeirante" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="assento_cadeirante" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
+    <div class="field"><label>Banheiro acessível a pessoas em cadeira de rodas? <span class="req">*</span></label><div class="options-group"><label class="option-chip"><input type="radio" name="banheiro_cadeirante" value="Sim" onchange="selectChip(this)"><span>Sim</span></label><label class="option-chip"><input type="radio" name="banheiro_cadeirante" value="Não" onchange="selectChip(this)"><span>Não</span></label></div></div>
+    <div class="field"><label>Sobre o estacionamento: <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Coberto gratuito" onchange="toggleCheckChip(this)"><span>Coberto gratuito</span></label>
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Coberto pago" onchange="toggleCheckChip(this)"><span>Coberto pago</span></label>
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Descoberto gratuito" onchange="toggleCheckChip(this)"><span>Descoberto gratuito</span></label>
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Descoberto pago" onchange="toggleCheckChip(this)"><span>Descoberto pago</span></label>
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Gratuito na rua" onchange="toggleCheckChip(this)"><span>Gratuito na rua</span></label>
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="No local" onchange="toggleCheckChip(this)"><span>No local</span></label>
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Pago na rua" onchange="toggleCheckChip(this)"><span>Pago na rua</span></label>
+        <label class="option-chip"><input type="checkbox" name="estacionamento" value="Sem estacionamento" onchange="toggleCheckChip(this)"><span>Sem estacionamento</span></label>
+      </div>
+    </div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 7: SERVIÇOS E EXTRAS -->
+  <div class="section-card" id="section-6">
+    <div class="section-header">
+      <div class="section-icon">07</div>
+      <div class="section-info"><h2>Serviços e Demanda</h2><p>O que você oferece e o que quer destacar na ficha.</p></div>
+    </div>
+    <div class="field"><label>Quais serviços você quer aumentar a demanda?</label><textarea name="servicos_aumentar" placeholder="Ex: Harmonização facial, limpeza de pele profunda..."></textarea></div>
+    <div class="field"><label>Quais serviços você não quer aumentar tanto a demanda? <span class="req">*</span></label><textarea name="servicos_nao_aumentar" placeholder="Ex: Serviços muito demorados, de baixa margem..." required></textarea></div>
+    <div class="field"><label>Por quais serviços seus clientes mais te procuram? <span class="req">*</span></label><textarea name="mais_procurado" placeholder="Ex: Botox, consultas de avaliação, pacotes mensais..." required></textarea></div>
+    <div class="field"><label>Quais produtos ou serviços você gostaria de mostrar ao público na ficha? <span class="req">*</span><span class="hint">Liste os principais para aparecerem no perfil do Google</span></label><textarea name="produtos_mostrar" class="tall" placeholder="Ex: Harmonização facial – R$800 / Limpeza de pele – R$200 / Botox – consultar..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Ficha Completa ✓</button></div>
+  </div>
+
+  </form>
+
+  <div class="success-card" id="successCard">
+    <div class="success-icon">✓</div>
+    <h2>Ficha enviada com sucesso!</h2>
+    <p>Recebemos todas as informações. A equipe DigitalCreate vai otimizar seu perfil no Google Meu Negócio e entrar em contato em breve!</p>
+    <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px;align-items:center">
+      <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia das suas respostas:</strong></p>
+      <button onclick="downloadFormPDF()" style="background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,58,237,.35)">📄 Baixar PDF das respostas</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let current = 0;
+const total = 7;
+
+function updateUI() {
+  const pct = Math.round(((current + 1) / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `Seção ${current + 1} de ${total}`;
+  document.querySelectorAll('.step-pill').forEach((p, i) => {
+    p.classList.remove('active','done');
+    if (i === current) p.classList.add('active');
+    else if (i < current) p.classList.add('done');
+  });
+  document.getElementById('introCard').style.display = current === 0 ? 'block' : 'none';
+}
+
+function goTo(idx) {
+  document.getElementById(`section-${current}`).classList.remove('active');
+  current = Math.max(0, Math.min(total - 1, idx));
+  document.getElementById(`section-${current}`).classList.add('active');
+  updateUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+const _secTitles = ['Identificação','Sobre o Negócio','Presença Digital e Concorrência','Localização e Cobertura','Horário de Funcionamento','Acessibilidade e Estacionamento','Serviços e Demanda'];
+
+function _clearErrors() {
+  document.querySelectorAll('.field.v-error').forEach(f => { f.classList.remove('v-error'); f.querySelector('.field-err-msg')?.remove(); });
+  document.querySelectorAll('.sec-err-banner').forEach(b => b.remove());
+  document.querySelectorAll('.step-pill.has-err').forEach(p => p.classList.remove('has-err'));
+}
+
+function _markError(field, msg) {
+  field.classList.add('v-error');
+  if (!field.querySelector('.field-err-msg')) {
+    const el = document.createElement('div');
+    el.className = 'field-err-msg';
+    el.innerHTML = '⚠ ' + msg;
+    field.appendChild(el);
+  }
+}
+
+function _validateSection(idx) {
+  const sec = document.getElementById('section-' + idx);
+  if (!sec) return true;
+  const errFields = [];
+  sec.querySelectorAll('.field').forEach(field => {
+    const inputs = field.querySelectorAll('input,textarea,select');
+    let required = false;
+    inputs.forEach(inp => { if (inp.required) required = true; });
+    if (!required) return;
+    let filled = false;
+    const radios = field.querySelectorAll('input[type=radio]');
+    const checks = field.querySelectorAll('input[type=checkbox]');
+    if (radios.length) {
+      filled = [...radios].some(r => r.checked);
+    } else if (checks.length && checks[0].required) {
+      filled = [...checks].some(c => c.checked);
+    } else {
+      const inp = field.querySelector('input:not([type=radio]):not([type=checkbox]),textarea,select');
+      filled = inp && inp.value.trim() !== '';
+    }
+    if (!filled) {
+      const lbl = field.querySelector('label')?.childNodes[0]?.textContent?.trim() || 'Campo obrigatório';
+      _markError(field, lbl + ' é obrigatório');
+      errFields.push(lbl);
+    }
+  });
+  if (errFields.length) {
+    const pill = document.querySelectorAll('.step-pill')[idx];
+    if (pill) pill.classList.add('has-err');
+    if (!sec.querySelector('.sec-err-banner')) {
+      const banner = document.createElement('div');
+      banner.className = 'sec-err-banner';
+      banner.innerHTML = '⚠️ <div><strong>Seção ' + (idx+1) + ': ' + (_secTitles[idx]||'') + '</strong> — Preencha os campos obrigatórios:<br><span style="font-weight:400">' + errFields.join(', ') + '</span></div>';
+      sec.insertBefore(banner, sec.querySelector('.section-header') || sec.firstChild);
+    }
+    return false;
+  }
+  return true;
+}
+
+function _validateAll() {
+  _clearErrors();
+  let firstErr = -1;
+  for (let i = 0; i < total; i++) {
+    const ok = _validateSection(i);
+    if (!ok && firstErr === -1) firstErr = i;
+  }
+  if (firstErr !== -1) { goTo(firstErr); return false; }
+  return true;
+}
+
+function nextSection() { if (_validateSection(current)) goTo(current + 1); }
+function prevSection() { goTo(current - 1); }
+
+function selectChip(radio) {
+  radio.closest('.options-group').querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected'));
+  radio.closest('.option-chip').classList.add('selected');
+}
+function toggleCheckChip(cb) { cb.closest('.option-chip').classList.toggle('selected', cb.checked); }
+
+async function submitForm() {
+  const form = document.getElementById('briefingForm');
+  if (!_validateAll()) return;
+  const btn = form.querySelector('.btn-submit');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+  const fd = new FormData(form);
+  const data = {
+    nome_empresa: fd.get('nome_empresa')||'', endereco: fd.get('endereco')||'',
+    email: fd.get('email')||'', telefone: fd.get('telefone')||'',
+    data_abertura: fd.get('data_abertura')||'', categorias: fd.get('categorias')||'',
+    palavra_chave: fd.get('palavra_chave')||'', especialidades: fd.get('especialidades')||'',
+    busca_cliente: fd.get('busca_cliente')||'', ajuda_cliente: fd.get('ajuda_cliente')||'',
+    redes_sociais: fd.get('redes_sociais')||'', possui_site: fd.get('possui_site')||'',
+    concorrentes: fd.get('concorrentes')||'', localizacao: fd.get('localizacao')||'',
+    areas_cobertura: fd.get('areas_cobertura')||'', horario: fd.get('horario')||'',
+    horario_especial: fd.get('horario_especial')||'', agendamento_online: fd.get('agendamento_online')||'',
+    idiomas: fd.get('idiomas')||'', empreendedoras: fd.get('empreendedoras')||'',
+    aro_inducao: fd.get('aro_inducao')||'', entrada_acessivel: fd.get('entrada_acessivel')||'',
+    dispositivos_auditivos: fd.get('dispositivos_auditivos')||'', assento_cadeirante: fd.get('assento_cadeirante')||'',
+    banheiro_cadeirante: fd.get('banheiro_cadeirante')||'',
+    estacionamento: [...fd.getAll('estacionamento')].join(', '),
+    servicos_aumentar: fd.get('servicos_aumentar')||'', servicos_nao_aumentar: fd.get('servicos_nao_aumentar')||'',
+    mais_procurado: fd.get('mais_procurado')||'', produtos_mostrar: fd.get('produtos_mostrar')||'',
+  };
+  const cqSeen = {};
+  document.querySelectorAll('[name^="cq_"]').forEach(inp => {
+    if (inp.type==='checkbox') { if (!cqSeen[inp.name]) cqSeen[inp.name]=[]; if(inp.checked) cqSeen[inp.name].push(inp.value); }
+    else if (inp.type==='radio') { if(inp.checked) data[inp.name]=inp.value; }
+    else data[inp.name]=inp.value;
+  });
+  Object.keys(cqSeen).forEach(k => { data[k]=cqSeen[k].join(', '); });
+  try {
+    await window._saveBriefing(data);
+    ['briefingForm','progressWrap','stepsNav','introCard'].forEach(id => { const el=document.getElementById(id); if(el) el.style.display='none'; });
+    document.getElementById('successCard').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch(e) {
+    btn.textContent = 'Enviar Ficha Completa ✓'; btn.disabled = false;
+    const msg = e?.code === 'permission-denied' ? 'Permissão negada. Contacte a DigitalCreate.' : (e?.message || String(e));
+    alert('Erro ao enviar:\n' + msg);
+  }
+}
+updateUI();
+function downloadFormPDF() {
+  const win = window.open('', '_blank', 'width=800,height=700');
+  if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
+  const form = document.getElementById('briefingForm');
+  const rows = [];
+  if (form) {
+    form.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),textarea,select').forEach(el => {
+      const label = el.closest('.field')?.querySelector('label')?.textContent?.split('\n')[0]?.trim() || el.name || '';
+      let val = '';
+      if (el.type === 'checkbox') { if (el.checked) val = el.value || '✓'; else return; }
+      else if (el.type === 'radio') { if (!el.checked) return; val = el.value; }
+      else val = el.value;
+      if (!val || !label) return;
+      rows.push({ label, val });
+    });
+  }
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const tableRows = rows.map(r => `<tr><td style="font-weight:600;color:#374151;padding:8px 12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;vertical-align:top;min-width:180px">${r.label}</td><td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827">${r.val.replace(/\n/g,'<br>')}</td></tr>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ficha – Google Meu Negócio</title><style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6}table{width:100%;border-collapse:collapse}td{font-size:10pt}</style></head><body><h1>📋 Ficha – Google Meu Negócio</h1><p style="color:#6b7280;font-size:9pt;margin-bottom:20px">DigitalCreate • Gerado em ${now}</p><table>${tableRows}</table></body></html>`);
+  win.document.close();
+  setTimeout(() => { win.focus(); win.print(); }, 400);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Equipe interna (Google login verificado) ─────────────────────────────
+    match /{collection}/{docId} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email_verified == true;
+    }
+
+    // ── Formulários públicos — clientes sem login ────────────────────────────
+    match /crm_briefings/{docId} {
+      allow create: if true;
+    }
+
+    match /crm_form_responses/{docId} {
+      allow create: if true;
+    }
+
+    match /crm_custom_forms/{docId} {
+      allow read: if true;
+    }
+
+    // ── Novos módulos (acesso apenas interno) ────────────────────────────────
+    match /crm_lembretes/{docId} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email_verified == true;
+    }
+
+    match /crm_avaliacoes/{docId} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email_verified == true;
+    }
+
+    match /crm_cal_notes/{docId} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email_verified == true;
+    }
+
+    match /crm_alertas/{docId} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email_verified == true;
+    }
+
+    match /crm_notas/{docId} {
+      allow read, write: if request.auth != null
+                         && request.auth.token.email_verified == true;
+    }
+  }
+}

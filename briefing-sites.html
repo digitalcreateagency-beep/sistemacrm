@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Briefing – Criação de Sites & Landing Pages | DigitalCreate</title>
+<style>
+:root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1e1040 0%,#3b1f8c 45%,#7b2fb8 100%);min-height:100vh;color:var(--gray-900)}
+.header{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.header-brand{color:#fff;font-size:17px;font-weight:700}
+.header-sep{width:1px;height:22px;background:rgba(255,255,255,.25);margin:0 8px}
+.header-title{color:rgba(255,255,255,.65);font-size:13px}
+.progress-wrap{background:rgba(255,255,255,.05);padding:12px 24px;border-bottom:1px solid rgba(255,255,255,.07)}
+.progress-top{display:flex;justify-content:space-between;margin-bottom:7px}
+.progress-label{color:rgba(255,255,255,.6);font-size:12px}
+.progress-count{color:#fff;font-size:12px;font-weight:600}
+.progress-bar{height:4px;background:rgba(255,255,255,.13);border-radius:2px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#06b6d4,#a855f7);border-radius:2px;transition:width .4s ease}
+.steps-nav{display:flex;gap:6px;padding:10px 24px;overflow-x:auto;background:rgba(255,255,255,.03);border-bottom:1px solid rgba(255,255,255,.07);scrollbar-width:none}
+.steps-nav::-webkit-scrollbar{display:none}
+.step-pill{flex-shrink:0;padding:5px 13px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.45);background:transparent;white-space:nowrap;transition:all .2s;user-select:none}
+.step-pill.active{background:linear-gradient(135deg,#06b6d4,#a855f7);color:#fff;border-color:transparent}
+.step-pill.done{background:rgba(168,85,247,.18);color:rgba(255,255,255,.75);border-color:rgba(168,85,247,.35)}
+.main{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+.intro-card{background:#fff;border-radius:20px;padding:44px 40px;text-align:center;margin-bottom:20px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.intro-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(91,33,182,.08),rgba(168,85,247,.08));border:1px solid rgba(124,58,237,.18);color:#5b21b6;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:18px}
+.intro-card h1{font-size:27px;font-weight:800;color:var(--gray-900);margin-bottom:10px;line-height:1.2}
+.intro-card h1 span{background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-card p{color:var(--gray-600);font-size:14px;line-height:1.65;max-width:520px;margin:0 auto 24px}
+.intro-stats{display:flex;justify-content:center;gap:36px;margin-top:20px;padding-top:20px;border-top:1px solid var(--gray-100)}
+.intro-stat strong{display:block;font-size:24px;font-weight:800;background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-stat span{font-size:11px;color:var(--gray-600)}
+.section-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.12);display:none;animation:fadeIn .35s ease}
+.section-card.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:2px solid var(--gray-100)}
+.section-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#5b21b6,#a855f7);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;color:#fff;font-weight:800}
+.section-info h2{font-size:19px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.section-info p{font-size:13px;color:var(--gray-600);line-height:1.5}
+.field{margin-bottom:22px}
+.field label{display:block;font-size:13.5px;font-weight:600;color:var(--gray-700);margin-bottom:6px;line-height:1.45}
+.field label .req{color:#ef4444;margin-left:2px}
+.field label .hint{display:block;font-size:11.5px;font-weight:400;color:var(--gray-600);margin-top:2px;line-height:1.4}
+.field input[type="text"],.field input[type="email"],.field input[type="tel"],.field input[type="url"],.field textarea{width:100%;padding:11px 15px;border:2px solid var(--gray-200);border-radius:10px;font-size:13.5px;font-family:inherit;color:var(--gray-900);background:var(--gray-50);transition:all .2s;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.field textarea{min-height:96px}
+.field textarea.tall{min-height:130px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.options-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.option-chip{display:flex;align-items:center;gap:6px;padding:7px 13px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--gray-700);background:#fff;transition:all .2s;user-select:none}
+.option-chip input{display:none}
+.option-chip:hover{border-color:#7c3aed;color:#5b21b6;background:rgba(124,58,237,.04)}
+.option-chip.selected{background:linear-gradient(135deg,#5b21b6,#7c3aed);border-color:transparent;color:#fff}
+.nav-btns{display:flex;justify-content:space-between;align-items:center;margin-top:32px;padding-top:22px;border-top:2px solid var(--gray-100)}
+.btn{padding:11px 26px;border-radius:10px;font-size:13.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .2s}
+.btn-back{background:var(--gray-100);color:var(--gray-700)}
+.btn-back:hover{background:var(--gray-200)}
+.btn-next{background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.35)}
+.btn-next:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(124,58,237,.45)}
+.btn-submit{background:linear-gradient(135deg,#06b6d4,#5b21b6);color:#fff;padding:12px 32px;font-size:14px;box-shadow:0 4px 18px rgba(6,182,212,.35)}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(6,182,212,.45)}
+.success-card{background:#fff;border-radius:20px;padding:64px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);display:none}
+.success-icon{width:80px;height:80px;background:linear-gradient(135deg,#06b6d4,#a855f7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px}
+.success-card h2{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px}
+.success-card p{color:var(--gray-600);font-size:14px;line-height:1.65}
+@media(max-width:600px){.section-card,.intro-card{padding:24px 18px}.intro-card h1{font-size:22px}.intro-stats{gap:20px}.section-header{flex-direction:column;gap:10px}.two-col{grid-template-columns:1fr}}
+/* ── Validação de campos ── */
+.field.v-error input,.field.v-error textarea,.field.v-error select{border-color:#ef4444!important;background:#fff5f5!important}
+.field.v-error .options-group .option-chip{border-color:#ef4444}
+.field-err-msg{font-size:11.5px;color:#ef4444;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:4px}
+.sec-err-banner{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#b91c1c;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:10px;animation:shakeX .4s ease}
+@keyframes shakeX{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.step-pill.has-err{border-color:#ef4444!important;color:#ef4444!important;background:rgba(239,68,68,.08)!important}
+</style>
+</head>
+<body>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, addDoc, collection, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+const app = initializeApp({ apiKey:"AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg", authDomain:"crm-digitalcreate.firebaseapp.com", projectId:"crm-digitalcreate" });
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Sign in anonymously so Firestore security rules (request.auth != null) are satisfied
+(async () => {
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
+  // Load custom questions from CRM editor
+  try {
+    const snap = await getDoc(doc(db, 'crm_form_config', 'sites'));
+    const qs = snap.exists() ? (snap.data().questions || []) : [];
+    if (qs.length) {
+      const lastNavBtns = Array.from(document.querySelectorAll('.nav-btns')).pop();
+      if (lastNavBtns) {
+        const div = document.createElement('div');
+        div.style.cssText = 'margin-top:20px;padding-top:20px;border-top:2px solid var(--gray-100,#f3f4f6)';
+        div.innerHTML = `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:14px">✨ Perguntas adicionais</div>` +
+          qs.map(q => {
+            const req = q.required ? ' required' : '';
+            const reqMark = q.required ? ' <span style="color:#ef4444">*</span>' : '';
+            const hint = q.hint ? `<span class="hint">${q.hint}</span>` : '';
+            if (q.type==='text')     return `<div class="field"><label>${q.label}${reqMark}${hint}</label><input type="text" name="cq_${q.id}"${req}></div>`;
+            if (q.type==='textarea') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><textarea name="cq_${q.id}"${req}></textarea></div>`;
+            if (q.type==='radio')    return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="radio" name="cq_${q.id}" value="${o}"${req} onchange="selectChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            if (q.type==='checkbox') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="checkbox" name="cq_${q.id}" value="${o}" onchange="toggleCheckChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+            return '';
+          }).join('');
+        lastNavBtns.before(div);
+      }
+    }
+  } catch(e) { console.warn('Custom questions load:', e); }
+})();
+
+window._saveBriefing = async (data) => {
+  const payload = { ...data, submittedAt: new Date().toISOString(), type: 'sites' };
+  try { if (!auth.currentUser) await signInAnonymously(auth); } catch(authErr) { console.warn('Auth:', authErr.code); }
+  const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Tempo esgotado após 15 segundos.')), 15000));
+  await Promise.race([addDoc(collection(db, 'crm_briefings'), payload), timeout]);
+};
+</script>
+
+<div class="header">
+  <span class="header-brand">DigitalCreate</span>
+  <div class="header-sep"></div>
+  <span class="header-title">Briefing – Criação de Sites &amp; Landing Pages</span>
+</div>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-top">
+    <span class="progress-label">Progresso do preenchimento</span>
+    <span class="progress-count" id="progressCount">Seção 1 de 13</span>
+  </div>
+  <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:8%"></div></div>
+</div>
+
+<div class="steps-nav" id="stepsNav">
+  <div class="step-pill active" onclick="goTo(0)">Negócio</div>
+  <div class="step-pill" onclick="goTo(1)">Objetivo</div>
+  <div class="step-pill" onclick="goTo(2)">Público-Alvo</div>
+  <div class="step-pill" onclick="goTo(3)">Serviços</div>
+  <div class="step-pill" onclick="goTo(4)">Diferenciais</div>
+  <div class="step-pill" onclick="goTo(5)">Concorrentes</div>
+  <div class="step-pill" onclick="goTo(6)">Estrutura</div>
+  <div class="step-pill" onclick="goTo(7)">Conteúdo</div>
+  <div class="step-pill" onclick="goTo(8)">Visual</div>
+  <div class="step-pill" onclick="goTo(9)">Funcionalidades</div>
+  <div class="step-pill" onclick="goTo(10)">SEO</div>
+  <div class="step-pill" onclick="goTo(11)">Domínio</div>
+  <div class="step-pill" onclick="goTo(12)">Finais</div>
+</div>
+
+<div class="main">
+  <div class="intro-card" id="introCard">
+    <div class="intro-badge">🧠 Briefing Completo</div>
+    <h1>Criação de <span>Sites &amp; Landing Pages</span></h1>
+    <p>Quanto mais detalhes você fornecer, mais assertivo e eficiente será o desenvolvimento do seu site. Preencha com calma — cada informação faz diferença no resultado final!</p>
+    <div class="intro-stats">
+      <div class="intro-stat"><strong>13</strong><span>Seções</span></div>
+      <div class="intro-stat"><strong>45+</strong><span>Questões</span></div>
+      <div class="intro-stat"><strong>~20 min</strong><span>Estimado</span></div>
+    </div>
+  </div>
+
+  <form id="briefingForm" onsubmit="return false">
+
+  <!-- SEÇÃO 1: NEGÓCIO -->
+  <div class="section-card active" id="section-0">
+    <div class="section-header">
+      <div class="section-icon">01</div>
+      <div class="section-info"><h2>Informações Gerais do Negócio</h2><p>Dados básicos sobre a empresa e o responsável pelo projeto.</p></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Nome da empresa <span class="req">*</span></label><input type="text" name="nome_empresa" placeholder="Ex: Studio Aura Bem" required></div>
+      <div class="field"><label>Nome do responsável <span class="req">*</span></label><input type="text" name="nome_responsavel" placeholder="Ex: Maria Silva" required></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>WhatsApp <span class="req">*</span></label><input type="tel" name="whatsapp" placeholder="(11) 99999-9999" required></div>
+      <div class="field"><label>E-mail <span class="req">*</span></label><input type="email" name="email" placeholder="contato@empresa.com.br" required></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Instagram</label><input type="text" name="instagram" placeholder="@suaempresa"></div>
+      <div class="field"><label>Site atual (se houver)</label><input type="url" name="site_atual" placeholder="www.suaempresa.com.br"></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Cidade / Região de atuação <span class="req">*</span></label><input type="text" name="cidade" placeholder="Ex: São Paulo/SP – Grande São Paulo" required></div>
+      <div class="field"><label>Há quanto tempo o negócio existe? <span class="req">*</span></label><input type="text" name="tempo_negocio" placeholder="Ex: 5 anos, desde 2019" required></div>
+    </div>
+    <div class="field"><label>Descreva brevemente o que sua empresa faz <span class="req">*</span></label><textarea name="descricao_negocio" class="tall" placeholder="Ex: Somos uma clínica de estética especializada em harmonização facial e tratamentos de pele, atendendo mulheres de 30 a 55 anos na Zona Sul de SP..." required></textarea></div>
+    <div class="nav-btns"><span></span><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 2: OBJETIVO -->
+  <div class="section-card" id="section-1">
+    <div class="section-header">
+      <div class="section-icon">02</div>
+      <div class="section-info"><h2>Objetivo do Site</h2><p>Essa parte é crucial — define toda a estratégia do projeto.</p></div>
+    </div>
+    <div class="field"><label>Qual é o principal objetivo do site? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="objetivo_site" value="Gerar leads" onchange="selectChip(this)"><span>Gerar leads</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_site" value="Vender diretamente" onchange="selectChip(this)"><span>Vender diretamente</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_site" value="Apresentação institucional" onchange="selectChip(this)"><span>Apresentação institucional</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_site" value="Agendamento" onchange="selectChip(this)"><span>Agendamento</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_site" value="Portfólio" onchange="selectChip(this)"><span>Portfólio</span></label>
+        <label class="option-chip"><input type="radio" name="objetivo_site" value="Outro" onchange="selectChip(this)"><span>Outro</span></label>
+      </div>
+    </div>
+    <div class="field"><label>O que você quer que a pessoa faça ao entrar no site? <span class="req">*</span><span class="hint">Ex: clicar no WhatsApp, comprar, preencher formulário, agendar consulta</span></label><textarea name="acao_desejada" placeholder="Descreva a ação principal que você quer que o visitante tome..." required></textarea></div>
+    <div class="field"><label>Existe uma meta de resultado?<span class="hint">Ex: X leads por mês, X vendas, X agendamentos</span></label><input type="text" name="meta_resultado" placeholder="Ex: 50 leads por mês, 10 vendas semanais..."></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 3: PÚBLICO-ALVO -->
+  <div class="section-card" id="section-2">
+    <div class="section-header">
+      <div class="section-icon">03</div>
+      <div class="section-info"><h2>Público-Alvo</h2><p>Quanto mais específico, mais assertivo será o site.</p></div>
+    </div>
+    <div class="field"><label>Quem é o seu cliente ideal? <span class="req">*</span><span class="hint">Descreva com detalhes: profissão, estilo de vida, hábitos, plataformas que usa</span></label><textarea name="cliente_ideal" class="tall" placeholder="Ex: Mulheres de 30 a 50 anos, class B, que trabalham fora, buscam praticidade e bem-estar, usam Instagram e Pinterest..." required></textarea></div>
+    <div class="two-col">
+      <div class="field"><label>Idade média <span class="req">*</span></label><input type="text" name="idade_media" placeholder="Ex: 28 a 45 anos" required></div>
+      <div class="field"><label>Gênero predominante</label><input type="text" name="genero" placeholder="Ex: Feminino, Masculino, Ambos"></div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Região <span class="req">*</span></label><input type="text" name="regiao_publico" placeholder="Ex: São Paulo/SP, Brasil todo" required></div>
+      <div class="field"><label>Poder aquisitivo</label><input type="text" name="poder_aquisitivo" placeholder="Ex: Classe B/C, renda de R$ 3k a R$ 8k"></div>
+    </div>
+    <div class="field"><label>Quais são as maiores dores desse público? <span class="req">*</span></label><textarea name="dores_publico" placeholder="Ex: Não tem tempo, não confia em serviços caros sem garantia, já foi mal atendida antes..." required></textarea></div>
+    <div class="field"><label>O que ele busca ao contratar seu serviço/produto? <span class="req">*</span></label><textarea name="busca_publico" placeholder="Ex: Resultado rápido, segurança, atendimento humanizado, preço justo..." required></textarea></div>
+    <div class="field"><label>O que faz ele confiar em uma empresa como a sua? <span class="req">*</span></label><textarea name="confianca_publico" placeholder="Ex: Depoimentos reais, antes e depois, profissional certificado, atendimento personalizado..." required></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 4: PRODUTOS / SERVIÇOS -->
+  <div class="section-card" id="section-3">
+    <div class="section-header">
+      <div class="section-icon">04</div>
+      <div class="section-info"><h2>Produtos / Serviços</h2><p>O que você oferece e o que merece mais destaque.</p></div>
+    </div>
+    <div class="field"><label>Quais serviços/produtos você oferece? <span class="req">*</span></label><textarea name="servicos" class="tall" placeholder="Liste todos os seus serviços ou produtos..." required></textarea></div>
+    <div class="field"><label>Qual é o principal (carro-chefe)? <span class="req">*</span></label><input type="text" name="carro_chefe" placeholder="Ex: Harmonização facial, Pacote Mensal Premium, Curso Online..." required></div>
+    <div class="two-col">
+      <div class="field"><label>Ticket médio</label><input type="text" name="ticket_medio" placeholder="Ex: R$ 500, R$ 2.000 a R$ 5.000"></div>
+      <div class="field"><label>Possui variações ou pacotes?</label><input type="text" name="pacotes" placeholder="Ex: Básico, Intermediário, Premium"></div>
+    </div>
+    <div class="field"><label>Existe algum diferencial nesses serviços?<span class="hint">O que torna seu serviço especial ou único</span></label><textarea name="diferencial_servico" placeholder="Ex: Atendimento em horário estendido, produto exclusivo, técnica proprietária..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 5: DIFERENCIAIS -->
+  <div class="section-card" id="section-4">
+    <div class="section-header">
+      <div class="section-icon">05</div>
+      <div class="section-info"><h2>Diferenciais e Posicionamento</h2><p>Por que você é a melhor escolha?</p></div>
+    </div>
+    <div class="field"><label>Por que alguém escolheria você e não um concorrente? <span class="req">*</span></label><textarea name="porque_voce" class="tall" placeholder="Liste os motivos reais pelos quais seus clientes te escolhem..." required></textarea></div>
+    <div class="field"><label>Quais são seus maiores diferenciais? <span class="req">*</span></label><textarea name="diferenciais" placeholder="Ex: Certificação internacional, 10 anos de experiência, entrega em 24h, garantia de resultado..." required></textarea></div>
+    <div class="field"><label>Tem algo exclusivo que só você oferece?</label><textarea name="exclusivo" placeholder="Ex: Método próprio, material exclusivo, consultoria vitalícia, bônus especiais..."></textarea></div>
+    <div class="field"><label>Possui certificações, prêmios ou experiência relevante?</label><textarea name="certificacoes" placeholder="Ex: Certificado pela Anvisa, Prêmio Top Empresas 2024, 15 anos de mercado, 1.200 clientes atendidos..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 6: CONCORRENTES E REFERÊNCIAS -->
+  <div class="section-card" id="section-5">
+    <div class="section-header">
+      <div class="section-icon">06</div>
+      <div class="section-info"><h2>Concorrentes e Referências</h2><p>Entender o mercado e inspirações ajuda a criar algo único e superior.</p></div>
+    </div>
+    <div class="field"><label>Cite concorrentes diretos <span class="req">*</span></label><textarea name="concorrentes" placeholder="Ex: Studio X, Clínica Y, Empresa Z — liste sites deles se souber" required></textarea></div>
+    <div class="field"><label>O que você gosta neles?</label><textarea name="gosta_concorrentes" placeholder="Ex: Layout limpo, fotos profissionais, depoimentos em destaque..."></textarea></div>
+    <div class="field"><label>O que você NÃO gosta neles?</label><textarea name="nao_gosta_concorrentes" placeholder="Ex: Site confuso, muito texto, sem preço, sem WhatsApp visível..."></textarea></div>
+    <div class="field"><label>Sites que você gosta (não precisa ser do seu nicho) <span class="req">*</span><span class="hint">Links de sites que te inspiram visualmente ou pela experiência</span></label><textarea name="sites_referencia" placeholder="Ex: apple.com, nubank.com.br, ifood.com.br — o que te chama atenção em cada um?" required></textarea></div>
+    <div class="field"><label>O que te chama atenção nesses sites?</label><textarea name="atencao_referencias" placeholder="Ex: Animações suaves, clareza das informações, botão sempre visível, cores modernas..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 7: ESTRUTURA -->
+  <div class="section-card" id="section-6">
+    <div class="section-header">
+      <div class="section-icon">07</div>
+      <div class="section-info"><h2>Estrutura do Site</h2><p>Tipo de site e páginas que compõem o projeto.</p></div>
+    </div>
+    <div class="field"><label>Qual tipo de site você precisa? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tipo_site" value="Landing Page (página única)" onchange="selectChip(this)"><span>Landing Page (página única)</span></label>
+        <label class="option-chip"><input type="radio" name="tipo_site" value="Site institucional" onchange="selectChip(this)"><span>Site institucional</span></label>
+        <label class="option-chip"><input type="radio" name="tipo_site" value="Página de vendas" onchange="selectChip(this)"><span>Página de vendas</span></label>
+        <label class="option-chip"><input type="radio" name="tipo_site" value="E-commerce" onchange="selectChip(this)"><span>E-commerce</span></label>
+        <label class="option-chip"><input type="radio" name="tipo_site" value="Blog / Portal" onchange="selectChip(this)"><span>Blog / Portal</span></label>
+        <label class="option-chip"><input type="radio" name="tipo_site" value="Outro" onchange="selectChip(this)"><span>Outro</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Quais páginas deseja incluir? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Home" onchange="toggleCheckChip(this)"><span>Home</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Sobre" onchange="toggleCheckChip(this)"><span>Sobre</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Serviços" onchange="toggleCheckChip(this)"><span>Serviços</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Portfólio / Galeria" onchange="toggleCheckChip(this)"><span>Portfólio / Galeria</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Depoimentos" onchange="toggleCheckChip(this)"><span>Depoimentos</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Blog" onchange="toggleCheckChip(this)"><span>Blog</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Contato" onchange="toggleCheckChip(this)"><span>Contato</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="FAQ" onchange="toggleCheckChip(this)"><span>FAQ</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Agendamento" onchange="toggleCheckChip(this)"><span>Agendamento</span></label>
+        <label class="option-chip"><input type="checkbox" name="paginas" value="Carrinho / Loja" onchange="toggleCheckChip(this)"><span>Carrinho / Loja</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Algo específico sobre a estrutura ou organização do site?</label><textarea name="estrutura_obs" placeholder="Ex: Quero que a seção de depoimentos fique logo após os serviços, quero pop-up de captura..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 8: CONTEÚDO -->
+  <div class="section-card" id="section-7">
+    <div class="section-header">
+      <div class="section-icon">08</div>
+      <div class="section-info"><h2>Conteúdo</h2><p>O que você já tem e o que precisará ser criado.</p></div>
+    </div>
+    <div class="field"><label>Você já possui textos prontos? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_textos" value="Sim, tenho todos" onchange="selectChip(this)"><span>Sim, tenho todos</span></label>
+        <label class="option-chip"><input type="radio" name="tem_textos" value="Tenho alguns" onchange="selectChip(this)"><span>Tenho alguns</span></label>
+        <label class="option-chip"><input type="radio" name="tem_textos" value="Não tenho nenhum" onchange="selectChip(this)"><span>Não tenho nenhum</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Precisa de ajuda com copywriting (criação de textos)? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="precisa_copy" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="precisa_copy" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+        <label class="option-chip"><input type="radio" name="precisa_copy" value="Quero revisar o que tenho" onchange="selectChip(this)"><span>Quero revisar o que tenho</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Possui fotos profissionais? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_fotos" value="Sim, profissionais" onchange="selectChip(this)"><span>Sim, profissionais</span></label>
+        <label class="option-chip"><input type="radio" name="tem_fotos" value="Tenho fotos comuns" onchange="selectChip(this)"><span>Tenho fotos comuns</span></label>
+        <label class="option-chip"><input type="radio" name="tem_fotos" value="Não tenho" onchange="selectChip(this)"><span>Não tenho</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Possui vídeos para usar no site?</label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_videos" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_videos" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Possui depoimentos de clientes?<span class="hint">Se sim, descreva como estão: texto, vídeo, print de mensagem, etc.</span></label><textarea name="depoimentos" placeholder="Ex: Tenho 8 depoimentos em vídeo no Instagram e 12 prints de WhatsApp / Não tenho depoimentos ainda..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 9: IDENTIDADE VISUAL -->
+  <div class="section-card" id="section-8">
+    <div class="section-header">
+      <div class="section-icon">09</div>
+      <div class="section-info"><h2>Identidade Visual</h2><p>A personalidade visual da sua marca no site.</p></div>
+    </div>
+    <div class="field"><label>Já possui logo? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_logo" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_logo" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+        <label class="option-chip"><input type="radio" name="tem_logo" value="Estou redesenhando" onchange="selectChip(this)"><span>Estou redesenhando</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Possui manual de marca?</label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_manual" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_manual" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="field"><label>Cores da marca<span class="hint">Códigos hex ou descrição</span></label><input type="text" name="cores_marca" placeholder="Ex: Roxo #7c3aed, Dourado #d4af37, Branco"></div>
+      <div class="field"><label>Tipografia (se houver)</label><input type="text" name="tipografia" placeholder="Ex: Playfair Display, Montserrat, não sei"></div>
+    </div>
+    <div class="field"><label>Estilo visual desejado <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="checkbox" name="estilo_visual" value="Moderno" onchange="toggleCheckChip(this)"><span>Moderno</span></label>
+        <label class="option-chip"><input type="checkbox" name="estilo_visual" value="Minimalista" onchange="toggleCheckChip(this)"><span>Minimalista</span></label>
+        <label class="option-chip"><input type="checkbox" name="estilo_visual" value="Sofisticado / Luxo" onchange="toggleCheckChip(this)"><span>Sofisticado / Luxo</span></label>
+        <label class="option-chip"><input type="checkbox" name="estilo_visual" value="Criativo / Colorido" onchange="toggleCheckChip(this)"><span>Criativo / Colorido</span></label>
+        <label class="option-chip"><input type="checkbox" name="estilo_visual" value="Sério / Corporativo" onchange="toggleCheckChip(this)"><span>Sério / Corporativo</span></label>
+        <label class="option-chip"><input type="checkbox" name="estilo_visual" value="Jovem / Descontraído" onchange="toggleCheckChip(this)"><span>Jovem / Descontraído</span></label>
+        <label class="option-chip"><input type="checkbox" name="estilo_visual" value="Natural / Orgânico" onchange="toggleCheckChip(this)"><span>Natural / Orgânico</span></label>
+      </div>
+    </div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 10: FUNCIONALIDADES -->
+  <div class="section-card" id="section-9">
+    <div class="section-header">
+      <div class="section-icon">10</div>
+      <div class="section-info"><h2>Funcionalidades</h2><p>Recursos técnicos que o site precisa ter.</p></div>
+    </div>
+    <div class="field"><label>O site precisa ter: <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Botão flutuante de WhatsApp" onchange="toggleCheckChip(this)"><span>Botão de WhatsApp</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Formulário de contato" onchange="toggleCheckChip(this)"><span>Formulário de contato</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Integração com redes sociais" onchange="toggleCheckChip(this)"><span>Redes sociais</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Blog" onchange="toggleCheckChip(this)"><span>Blog</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Área de membros" onchange="toggleCheckChip(this)"><span>Área de membros</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Integração com pagamento" onchange="toggleCheckChip(this)"><span>Pagamento online</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Chat online" onchange="toggleCheckChip(this)"><span>Chat online</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Agendamento online" onchange="toggleCheckChip(this)"><span>Agendamento online</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Mapa / localização" onchange="toggleCheckChip(this)"><span>Mapa / localização</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Galeria de fotos" onchange="toggleCheckChip(this)"><span>Galeria de fotos</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Pixel de rastreamento (Meta/Google)" onchange="toggleCheckChip(this)"><span>Pixel de rastreamento</span></label>
+        <label class="option-chip"><input type="checkbox" name="funcionalidades" value="Pop-up de captura" onchange="toggleCheckChip(this)"><span>Pop-up de captura</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Alguma funcionalidade específica não listada acima?</label><textarea name="funcionalidades_outras" placeholder="Descreva qualquer recurso específico que você precisa..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 11: SEO E TRÁFEGO -->
+  <div class="section-card" id="section-10">
+    <div class="section-header">
+      <div class="section-icon">11</div>
+      <div class="section-info"><h2>SEO e Tráfego</h2><p>Como você vai atrair visitas para o site.</p></div>
+    </div>
+    <div class="field"><label>Já faz anúncios pagos? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="faz_anuncios" value="Sim, atualmente" onchange="selectChip(this)"><span>Sim, atualmente</span></label>
+        <label class="option-chip"><input type="radio" name="faz_anuncios" value="Já fiz antes" onchange="selectChip(this)"><span>Já fiz antes</span></label>
+        <label class="option-chip"><input type="radio" name="faz_anuncios" value="Nunca fiz" onchange="selectChip(this)"><span>Nunca fiz</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Pretende investir em tráfego pago após o site estar pronto?</label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="pretende_trafego" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="pretende_trafego" value="Talvez" onchange="selectChip(this)"><span>Talvez</span></label>
+        <label class="option-chip"><input type="radio" name="pretende_trafego" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Quer que o site seja otimizado para o Google (SEO)? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="quer_seo" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="quer_seo" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+        <label class="option-chip"><input type="radio" name="quer_seo" value="Não sei o que é" onchange="selectChip(this)"><span>Não sei o que é</span></label>
+      </div>
+    </div>
+    <div class="field"><label>Principais palavras-chave (se souber)<span class="hint">Termos que seus clientes usariam para te encontrar no Google</span></label><textarea name="palavras_chave_seo" placeholder="Ex: clínica de estética zona sul SP, harmonização facial São Paulo, botox preço..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 12: DOMÍNIO E HOSPEDAGEM -->
+  <div class="section-card" id="section-11">
+    <div class="section-header">
+      <div class="section-icon">12</div>
+      <div class="section-info"><h2>Domínio e Hospedagem</h2><p>Infraestrutura técnica do site.</p></div>
+    </div>
+    <div class="field"><label>Já possui domínio? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_dominio" value="Sim" onchange="selectChip(this);showEl('dominio-qual')"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_dominio" value="Não" onchange="selectChip(this);hideEl('dominio-qual')"><span>Não</span></label>
+      </div>
+    </div>
+    <div id="dominio-qual" style="display:none">
+      <div class="field"><label>Qual domínio?</label><input type="text" name="qual_dominio" placeholder="Ex: www.suaempresa.com.br"></div>
+    </div>
+    <div class="field"><label>Já possui hospedagem? <span class="req">*</span></label>
+      <div class="options-group">
+        <label class="option-chip"><input type="radio" name="tem_hospedagem" value="Sim" onchange="selectChip(this)"><span>Sim</span></label>
+        <label class="option-chip"><input type="radio" name="tem_hospedagem" value="Não" onchange="selectChip(this)"><span>Não</span></label>
+        <label class="option-chip"><input type="radio" name="tem_hospedagem" value="Não sei" onchange="selectChip(this)"><span>Não sei</span></label>
+      </div>
+    </div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button></div>
+  </div>
+
+  <!-- SEÇÃO 13: EXPECTATIVAS E FINAIS -->
+  <div class="section-card" id="section-12">
+    <div class="section-header">
+      <div class="section-icon">13</div>
+      <div class="section-info"><h2>Expectativas e Observações Finais</h2><p>Sua visão do resultado final e qualquer detalhe extra importante.</p></div>
+    </div>
+    <div class="field"><label>Quais são suas expectativas com o projeto? <span class="req">*</span><span class="hint">Como você visualiza esse site pronto? O que você sentiria ao ver o resultado?</span></label><textarea name="expectativas_projeto" class="tall" placeholder="Ex: Quero um site que transmita profissionalismo e faça as pessoas confiarem na minha marca logo de início. Visualizo algo clean, com as fotos em destaque e um botão de WhatsApp sempre visível..." required></textarea></div>
+    <div class="field"><label>Existe algo importante que não foi mencionado?</label><textarea name="nao_mencionado" placeholder="Qualquer informação adicional relevante para o projeto..."></textarea></div>
+    <div class="field"><label>Alguma preferência ou restrição específica?</label><textarea name="preferencias_restricoes" placeholder="Ex: Não quero cores escuras, não quero muito texto na home, precisa funcionar bem no celular..."></textarea></div>
+    <div class="nav-btns"><button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button><button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Briefing Completo ✓</button></div>
+  </div>
+
+  </form>
+
+  <div class="success-card" id="successCard">
+    <div class="success-icon">🚀</div>
+    <h2>Briefing enviado com sucesso!</h2>
+    <p>Recebemos todas as informações do seu projeto. A equipe DigitalCreate vai analisar tudo com cuidado e entrar em contato em breve para alinhar os próximos passos. Vamos criar algo incrível juntos!</p>
+    <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px;align-items:center">
+      <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia das suas respostas</strong> — ou use se o envio falhar:</p>
+      <button onclick="downloadFormPDF()" style="background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,58,237,.35)">📄 Baixar PDF das respostas</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let current = 0;
+const total = 13;
+
+function updateUI() {
+  const pct = Math.round(((current + 1) / total) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressCount').textContent = `Seção ${current + 1} de ${total}`;
+  document.querySelectorAll('.step-pill').forEach((p, i) => {
+    p.classList.remove('active','done');
+    if (i === current) p.classList.add('active');
+    else if (i < current) p.classList.add('done');
+  });
+  document.getElementById('introCard').style.display = current === 0 ? 'block' : 'none';
+}
+function goTo(idx) {
+  document.getElementById(`section-${current}`).classList.remove('active');
+  current = Math.max(0, Math.min(total - 1, idx));
+  document.getElementById(`section-${current}`).classList.add('active');
+  updateUI();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function nextSection() { if (_validateSection(current)) goTo(current + 1); }
+function prevSection() { goTo(current - 1); }
+
+/* ── Validação personalizada ──────────────────────────────────────────── */
+function _clearErrors() {
+  document.querySelectorAll('.field.v-error').forEach(f => f.classList.remove('v-error'));
+  document.querySelectorAll('.field-err-msg').forEach(m => m.remove());
+  document.querySelectorAll('.sec-err-banner').forEach(b => b.remove());
+  document.querySelectorAll('.step-pill.has-err').forEach(p => p.classList.remove('has-err'));
+}
+
+function _markError(field, msg) {
+  field.classList.add('v-error');
+  if (!field.querySelector('.field-err-msg')) {
+    const d = document.createElement('div');
+    d.className = 'field-err-msg';
+    d.innerHTML = '⚠ ' + msg;
+    field.appendChild(d);
+  }
+}
+
+function _validateSection(idx) {
+  const section = document.getElementById('section-' + idx);
+  if (!section) return true;
+  _clearErrors();
+  let ok = true;
+  const fields = [];
+
+  // Inputs / textareas / selects required
+  section.querySelectorAll('input[required],textarea[required],select[required]').forEach(el => {
+    if (el.type === 'radio') return;
+    if (!el.value.trim()) {
+      const f = el.closest('.field');
+      const label = f?.querySelector('label')?.childNodes[0]?.textContent?.trim() || el.name;
+      if (f) { _markError(f, 'Campo obrigatório'); fields.push(label); ok = false; }
+    }
+  });
+
+  // Radio groups required
+  const rNames = new Set();
+  section.querySelectorAll('input[type="radio"][required]').forEach(r => rNames.add(r.name));
+  rNames.forEach(name => {
+    if (!section.querySelector(`input[name="${name}"]:checked`)) {
+      const f = section.querySelector(`input[name="${name}"]`)?.closest('.field');
+      const label = f?.querySelector('label')?.childNodes[0]?.textContent?.trim() || name;
+      if (f) { _markError(f, 'Selecione uma opção'); fields.push(label); ok = false; }
+    }
+  });
+
+  if (!ok) {
+    const secName = document.querySelectorAll('.step-pill')[idx]?.textContent?.trim() || ('Seção ' + (idx + 1));
+    const card = section;
+    const banner = document.createElement('div');
+    banner.className = 'sec-err-banner';
+    banner.innerHTML = `<span style="font-size:18px">⚠️</span><div><strong>Seção "${secName}"</strong> tem campo(s) obrigatório(s) não preenchido(s):<br><span style="font-weight:400;font-size:12px">${fields.join(' · ')}</span></div>`;
+    card.insertBefore(banner, card.firstChild);
+    window.scrollTo({ top: card.getBoundingClientRect().top + window.scrollY - 80, behavior: 'smooth' });
+  }
+  return ok;
+}
+
+function _validateAll() {
+  _clearErrors();
+  const pills = document.querySelectorAll('.step-pill');
+  let firstErr = -1;
+  const errSections = [];
+
+  for (let idx = 0; idx < total; idx++) {
+    const section = document.getElementById('section-' + idx);
+    if (!section) continue;
+    let secOk = true;
+    const fields = [];
+
+    section.querySelectorAll('input[required],textarea[required],select[required]').forEach(el => {
+      if (el.type === 'radio') return;
+      if (!el.value.trim()) {
+        const f = el.closest('.field');
+        const label = f?.querySelector('label')?.childNodes[0]?.textContent?.trim() || el.name;
+        if (f) { _markError(f, 'Campo obrigatório'); fields.push(label); secOk = false; }
+      }
+    });
+
+    const rNames = new Set();
+    section.querySelectorAll('input[type="radio"][required]').forEach(r => rNames.add(r.name));
+    rNames.forEach(name => {
+      if (!section.querySelector(`input[name="${name}"]:checked`)) {
+        const f = section.querySelector(`input[name="${name}"]`)?.closest('.field');
+        const label = f?.querySelector('label')?.childNodes[0]?.textContent?.trim() || name;
+        if (f) { _markError(f, 'Selecione uma opção'); fields.push(label); secOk = false; }
+      }
+    });
+
+    if (!secOk) {
+      if (pills[idx]) pills[idx].classList.add('has-err');
+      errSections.push({ idx, name: pills[idx]?.textContent?.trim() || ('Seção ' + (idx+1)), fields });
+      if (firstErr === -1) firstErr = idx;
+    }
+  }
+
+  if (firstErr === -1) return true;
+
+  // Navega para primeira seção com erro e mostra banner
+  goTo(firstErr);
+  const sec = errSections[0];
+  const card = document.getElementById('section-' + firstErr);
+  const banner = document.createElement('div');
+  banner.className = 'sec-err-banner';
+  const outrasMsg = errSections.length > 1 ? ` <span style="font-weight:400">(+ ${errSections.length - 1} outra${errSections.length>2?'s':''} seção${errSections.length>2?'ões':''} com erros)</span>` : '';
+  banner.innerHTML = `<span style="font-size:18px">⚠️</span><div><strong>Seção "${sec.name}"</strong>${outrasMsg} — campos obrigatórios não preenchidos:<br><span style="font-weight:400;font-size:12px">${sec.fields.join(' · ')}</span></div>`;
+  card.insertBefore(banner, card.firstChild);
+  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+  return false;
+}
+function selectChip(radio) { radio.closest('.options-group').querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected')); radio.closest('.option-chip').classList.add('selected'); }
+function toggleCheckChip(cb) { cb.closest('.option-chip').classList.toggle('selected', cb.checked); }
+function showEl(id) { document.getElementById(id).style.display = 'block'; }
+function hideEl(id) { document.getElementById(id).style.display = 'none'; }
+
+async function submitForm() {
+  const form = document.getElementById('briefingForm');
+  if (!_validateAll()) return;
+  const btn = form.querySelector('.btn-submit');
+  btn.textContent = 'Enviando...'; btn.disabled = true;
+  const fd = new FormData(form);
+  const data = {
+    nome_empresa: fd.get('nome_empresa')||'', nome_responsavel: fd.get('nome_responsavel')||'',
+    whatsapp: fd.get('whatsapp')||'', email: fd.get('email')||'',
+    instagram: fd.get('instagram')||'', site_atual: fd.get('site_atual')||'',
+    cidade: fd.get('cidade')||'', tempo_negocio: fd.get('tempo_negocio')||'',
+    descricao_negocio: fd.get('descricao_negocio')||'',
+    objetivo_site: fd.get('objetivo_site')||'', acao_desejada: fd.get('acao_desejada')||'',
+    meta_resultado: fd.get('meta_resultado')||'',
+    cliente_ideal: fd.get('cliente_ideal')||'', idade_media: fd.get('idade_media')||'',
+    genero: fd.get('genero')||'', regiao_publico: fd.get('regiao_publico')||'',
+    poder_aquisitivo: fd.get('poder_aquisitivo')||'', dores_publico: fd.get('dores_publico')||'',
+    busca_publico: fd.get('busca_publico')||'', confianca_publico: fd.get('confianca_publico')||'',
+    servicos: fd.get('servicos')||'', carro_chefe: fd.get('carro_chefe')||'',
+    ticket_medio: fd.get('ticket_medio')||'', pacotes: fd.get('pacotes')||'',
+    diferencial_servico: fd.get('diferencial_servico')||'',
+    porque_voce: fd.get('porque_voce')||'', diferenciais: fd.get('diferenciais')||'',
+    exclusivo: fd.get('exclusivo')||'', certificacoes: fd.get('certificacoes')||'',
+    concorrentes: fd.get('concorrentes')||'', gosta_concorrentes: fd.get('gosta_concorrentes')||'',
+    nao_gosta_concorrentes: fd.get('nao_gosta_concorrentes')||'',
+    sites_referencia: fd.get('sites_referencia')||'', atencao_referencias: fd.get('atencao_referencias')||'',
+    tipo_site: fd.get('tipo_site')||'',
+    paginas: [...fd.getAll('paginas')].join(', '),
+    estrutura_obs: fd.get('estrutura_obs')||'',
+    tem_textos: fd.get('tem_textos')||'', precisa_copy: fd.get('precisa_copy')||'',
+    tem_fotos: fd.get('tem_fotos')||'', tem_videos: fd.get('tem_videos')||'',
+    depoimentos: fd.get('depoimentos')||'',
+    tem_logo: fd.get('tem_logo')||'', tem_manual: fd.get('tem_manual')||'',
+    cores_marca: fd.get('cores_marca')||'', tipografia: fd.get('tipografia')||'',
+    estilo_visual: [...fd.getAll('estilo_visual')].join(', '),
+    funcionalidades: [...fd.getAll('funcionalidades')].join(', '),
+    funcionalidades_outras: fd.get('funcionalidades_outras')||'',
+    faz_anuncios: fd.get('faz_anuncios')||'', pretende_trafego: fd.get('pretende_trafego')||'',
+    quer_seo: fd.get('quer_seo')||'', palavras_chave_seo: fd.get('palavras_chave_seo')||'',
+    tem_dominio: fd.get('tem_dominio')||'', qual_dominio: fd.get('qual_dominio')||'',
+    tem_hospedagem: fd.get('tem_hospedagem')||'',
+    expectativas_projeto: fd.get('expectativas_projeto')||'',
+    nao_mencionado: fd.get('nao_mencionado')||'',
+    preferencias_restricoes: fd.get('preferencias_restricoes')||'',
+  };
+  // Collect custom questions
+  const cqSeen = {};
+  document.querySelectorAll('[name^="cq_"]').forEach(inp => {
+    if (inp.type==='checkbox') { if (!cqSeen[inp.name]) cqSeen[inp.name]=[]; if(inp.checked) cqSeen[inp.name].push(inp.value); }
+    else if (inp.type==='radio') { if(inp.checked) data[inp.name]=inp.value; }
+    else data[inp.name]=inp.value;
+  });
+  Object.keys(cqSeen).forEach(k => { data[k]=cqSeen[k].join(', '); });
+  try {
+    await window._saveBriefing(data);
+    ['briefingForm','progressWrap','stepsNav','introCard'].forEach(id => { const el = document.getElementById(id); if(el) el.style.display = 'none'; });
+    document.getElementById('successCard').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } catch(e) {
+    btn.textContent = 'Enviar Briefing Completo ✓'; btn.disabled = false;
+    const msg = e?.code === 'permission-denied' ? 'Permissão negada. Contacte a DigitalCreate.' : (e?.message || String(e));
+    alert('Erro ao enviar:\n' + msg);
+  }
+}
+updateUI();
+
+// ── PDF das respostas ────────────────────────────────────────────────────────
+let _formData = {};
+function downloadFormPDF() {
+  const win = window.open('', '_blank', 'width=800,height=700');
+  if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
+  const form = document.getElementById('briefingForm');
+  const rows = [];
+  // Coleta todos os campos preenchidos
+  if (form) {
+    form.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),textarea,select').forEach(el => {
+      const label = el.closest('.field')?.querySelector('label')?.textContent?.split('\n')[0]?.trim() || el.name || '';
+      let val = '';
+      if (el.type === 'checkbox') { if (el.checked) val = el.value || '✓'; else return; }
+      else if (el.type === 'radio') { if (!el.checked) return; val = el.value; }
+      else val = el.value;
+      if (!val || !label) return;
+      rows.push({ label, val });
+    });
+  }
+  const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  const tableRows = rows.map(r => `<tr><td style="font-weight:600;color:#374151;padding:8px 12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;vertical-align:top;min-width:180px">${r.label}</td><td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827">${r.val.replace(/\n/g,'<br>')}</td></tr>`).join('');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Briefing – Sites & Landing Pages</title>
+  <style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6;margin-bottom:4px}table{width:100%;border-collapse:collapse}tr:hover{background:#fafafa}td{font-size:10pt}</style>
+  </head><body>
+  <h1>📋 Briefing – Sites & Landing Pages</h1>
+  <p style="color:#6b7280;font-size:9pt;margin-bottom:20px">DigitalCreate • Gerado em ${now}</p>
+  <table>${tableRows}</table>
+  </body></html>`);
+  win.document.close();
+  setTimeout(() => { win.focus(); win.print(); }, 400);
+}
+</script>
+</body>
+</html>

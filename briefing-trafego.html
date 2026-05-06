@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Briefing – Gestão de Tráfego Pago | DigitalCreate</title>
+    <style>
+        :root {
+            --purple-dark: #1e1040;
+            --purple-mid: #5b21b6;
+            --purple-light: #7c3aed;
+            --pink: #a855f7;
+            --cyan: #06b6d4;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-900: #111827;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #1e1040 0%, #3b1f8c 45%, #7b2fb8 100%);
+            min-height: 100vh;
+            color: var(--gray-900);
+        }
+
+        /* ── HEADER ── */
+        .header {
+            background: rgba(255,255,255,0.07);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-brand { color: #fff; font-size: 17px; font-weight: 700; }
+        .header-sep { width: 1px; height: 22px; background: rgba(255,255,255,0.25); margin: 0 8px; }
+        .header-title { color: rgba(255,255,255,0.65); font-size: 13px; }
+
+        /* ── PROGRESS ── */
+        .progress-wrap {
+            background: rgba(255,255,255,0.05);
+            padding: 12px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+        }
+        .progress-top { display: flex; justify-content: space-between; margin-bottom: 7px; }
+        .progress-label { color: rgba(255,255,255,0.6); font-size: 12px; }
+        .progress-count { color: #fff; font-size: 12px; font-weight: 600; }
+        .progress-bar { height: 4px; background: rgba(255,255,255,0.13); border-radius: 2px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #06b6d4, #a855f7); border-radius: 2px; transition: width .4s ease; }
+
+        /* ── STEPS NAV ── */
+        .steps-nav {
+            display: flex;
+            gap: 6px;
+            padding: 10px 24px;
+            overflow-x: auto;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            scrollbar-width: none;
+        }
+        .steps-nav::-webkit-scrollbar { display: none; }
+        .step-pill {
+            flex-shrink: 0;
+            padding: 5px 13px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.14);
+            color: rgba(255,255,255,0.45);
+            background: transparent;
+            white-space: nowrap;
+            transition: all .2s;
+            user-select: none;
+        }
+        .step-pill.active { background: linear-gradient(135deg,#06b6d4,#a855f7); color: #fff; border-color: transparent; }
+        .step-pill.done { background: rgba(168,85,247,.18); color: rgba(255,255,255,.75); border-color: rgba(168,85,247,.35); }
+
+        /* ── MAIN ── */
+        .main { max-width: 780px; margin: 0 auto; padding: 28px 16px 80px; }
+
+        /* ── INTRO ── */
+        .intro-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 44px 40px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.28);
+        }
+        .intro-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg,rgba(91,33,182,.08),rgba(168,85,247,.08));
+            border: 1px solid rgba(124,58,237,.18);
+            color: #5b21b6;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+        .intro-card h1 { font-size: 27px; font-weight: 800; color: var(--gray-900); margin-bottom: 10px; line-height: 1.2; }
+        .intro-card h1 span { background: linear-gradient(135deg,#5b21b6,#a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .intro-card p { color: var(--gray-600); font-size: 14px; line-height: 1.65; max-width: 480px; margin: 0 auto 24px; }
+        .intro-stats { display: flex; justify-content: center; gap: 36px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--gray-100); }
+        .intro-stat strong { display: block; font-size: 24px; font-weight: 800; background: linear-gradient(135deg,#5b21b6,#a855f7); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .intro-stat span { font-size: 11px; color: var(--gray-600); }
+
+        /* ── SECTION CARD ── */
+        .section-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 36px 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.25), 0 4px 16px rgba(0,0,0,.12);
+            display: none;
+            animation: fadeIn .35s ease;
+        }
+        .section-card.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .section-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 28px;
+            padding-bottom: 22px;
+            border-bottom: 2px solid var(--gray-100);
+        }
+        .section-icon {
+            width: 48px; height: 48px; border-radius: 14px;
+            background: linear-gradient(135deg,#5b21b6,#a855f7);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; flex-shrink: 0;
+        }
+        .section-info h2 { font-size: 19px; font-weight: 700; color: var(--gray-900); margin-bottom: 4px; }
+        .section-info p { font-size: 13px; color: var(--gray-600); line-height: 1.5; }
+
+        /* ── FIELDS ── */
+        .field { margin-bottom: 22px; }
+        .field label { display: block; font-size: 13.5px; font-weight: 600; color: var(--gray-700); margin-bottom: 6px; line-height: 1.45; }
+        .field label .req { color: #ef4444; margin-left: 2px; }
+        .field label .hint { display: block; font-size: 11.5px; font-weight: 400; color: var(--gray-600); margin-top: 2px; line-height: 1.4; }
+
+        .field input[type="text"],
+        .field textarea,
+        .field select {
+            width: 100%;
+            padding: 11px 15px;
+            border: 2px solid var(--gray-200);
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-family: inherit;
+            color: var(--gray-900);
+            background: var(--gray-50);
+            transition: all .2s;
+            outline: none;
+            resize: vertical;
+        }
+        .field input:focus, .field textarea:focus, .field select:focus {
+            border-color: #7c3aed;
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(124,58,237,.1);
+        }
+        .field textarea { min-height: 96px; }
+        .field textarea.tall { min-height: 120px; }
+
+        /* ── CHIPS ── */
+        .options-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 7px; }
+        .option-chip {
+            display: flex; align-items: center; gap: 6px;
+            padding: 7px 13px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12.5px;
+            font-weight: 500;
+            color: var(--gray-700);
+            background: #fff;
+            transition: all .2s;
+            user-select: none;
+        }
+        .option-chip input { display: none; }
+        .option-chip:hover { border-color: #7c3aed; color: #5b21b6; background: rgba(124,58,237,.04); }
+        .option-chip.selected { background: linear-gradient(135deg,#5b21b6,#7c3aed); border-color: transparent; color: #fff; }
+
+        /* ── NAV BUTTONS ── */
+        .nav-btns {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 32px;
+            padding-top: 22px;
+            border-top: 2px solid var(--gray-100);
+        }
+        .btn {
+            padding: 11px 26px;
+            border-radius: 10px;
+            font-size: 13.5px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+            transition: all .2s;
+        }
+        .btn-back { background: var(--gray-100); color: var(--gray-700); }
+        .btn-back:hover { background: var(--gray-200); }
+        .btn-next { background: linear-gradient(135deg,#5b21b6,#a855f7); color: #fff; box-shadow: 0 4px 14px rgba(124,58,237,.35); }
+        .btn-next:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(124,58,237,.45); }
+        .btn-submit { background: linear-gradient(135deg,#06b6d4,#5b21b6); color: #fff; padding: 12px 32px; font-size: 14px; box-shadow: 0 4px 18px rgba(6,182,212,.35); }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(6,182,212,.45); }
+
+        /* ── INFO BOX ── */
+        .info-box {
+            background: linear-gradient(135deg,rgba(91,33,182,.06),rgba(6,182,212,.06));
+            border: 1px solid rgba(124,58,237,.18);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-bottom: 26px;
+            font-size: 12.5px;
+            color: #374151;
+            display: flex;
+            gap: 10px;
+        }
+
+        /* ── SUCCESS ── */
+        .success-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 64px 40px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,.25);
+            display: none;
+        }
+        .success-icon {
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg,#06b6d4,#a855f7);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 22px;
+        }
+        .success-card h2 { font-size: 26px; font-weight: 800; color: var(--gray-900); margin-bottom: 10px; }
+        .success-card p { color: var(--gray-600); font-size: 14px; line-height: 1.65; }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 600px) {
+            .section-card, .intro-card { padding: 24px 18px; }
+            .intro-card h1 { font-size: 22px; }
+            .intro-stats { gap: 20px; }
+            .section-header { flex-direction: column; gap: 10px; }
+        }
+        .field.v-error input,.field.v-error textarea,.field.v-error select{border-color:#ef4444!important;background:#fff5f5!important}
+        .field.v-error .options-group .option-chip{border-color:#ef4444}
+        .field-err-msg{font-size:11.5px;color:#ef4444;margin-top:5px;font-weight:600;display:flex;align-items:center;gap:4px}
+        .sec-err-banner{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#b91c1c;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:10px;animation:shakeX .4s ease}
+        @keyframes shakeX{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+        .step-pill.has-err{border-color:#ef4444!important;color:#ef4444!important;background:rgba(239,68,68,.08)!important}
+    </style>
+</head>
+<body>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, addDoc, collection, getDoc, doc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  const app = initializeApp({ apiKey:"AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg", authDomain:"crm-digitalcreate.firebaseapp.com", projectId:"crm-digitalcreate" });
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  (async () => {
+    try { if (!auth.currentUser) await signInAnonymously(auth); } catch(_) {}
+    try {
+      const snap = await getDoc(doc(db, 'crm_form_config', 'trafego'));
+      const qs = snap.exists() ? (snap.data().questions || []) : [];
+      if (qs.length) {
+        const lastNavBtns = Array.from(document.querySelectorAll('.nav-btns')).pop();
+        if (lastNavBtns) {
+          const div = document.createElement('div');
+          div.style.cssText = 'margin-top:20px;padding-top:20px;border-top:2px solid var(--gray-100,#f3f4f6)';
+          div.innerHTML = `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#9ca3af;margin-bottom:14px">✨ Perguntas adicionais</div>` +
+            qs.map(q => {
+              const req = q.required ? ' required' : '';
+              const reqMark = q.required ? ' <span style="color:#ef4444">*</span>' : '';
+              const hint = q.hint ? `<span class="hint">${q.hint}</span>` : '';
+              if (q.type==='text')     return `<div class="field"><label>${q.label}${reqMark}${hint}</label><input type="text" name="cq_${q.id}"${req}></div>`;
+              if (q.type==='textarea') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><textarea name="cq_${q.id}"${req}></textarea></div>`;
+              if (q.type==='radio')    return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="radio" name="cq_${q.id}" value="${o}"${req} onchange="selectChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+              if (q.type==='checkbox') return `<div class="field"><label>${q.label}${reqMark}${hint}</label><div class="options-group">${(q.options||[]).map(o=>`<label class="option-chip"><input type="checkbox" name="cq_${q.id}" value="${o}" onchange="toggleCheckChip(this)"><span>${o}</span></label>`).join('')}</div></div>`;
+              return '';
+            }).join('');
+          lastNavBtns.before(div);
+        }
+      }
+    } catch(e) { console.warn('Custom questions load:', e); }
+  })();
+
+  window._saveBriefing = async (data) => {
+    const payload = { ...data, submittedAt: new Date().toISOString(), type: 'trafego' };
+    try {
+      if (!auth.currentUser) await signInAnonymously(auth);
+    } catch(authErr) {
+      console.warn('Anonymous auth failed:', authErr.code, authErr.message);
+      // Continua mesmo sem auth — Firestore rules podem permitir writes não autenticados
+    }
+    const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('Tempo esgotado após 15 segundos. Verifique sua conexão.')), 15000));
+    await Promise.race([addDoc(collection(db, 'crm_briefings'), payload), timeout]);
+  };
+</script>
+
+<!-- HEADER -->
+<div class="header">
+    <span class="header-brand">DigitalCreate</span>
+    <div class="header-sep"></div>
+    <span class="header-title">Briefing – Gestão de Tráfego Pago</span>
+</div>
+
+<!-- PROGRESS -->
+<div class="progress-wrap" id="progressWrap">
+    <div class="progress-top">
+        <span class="progress-label">Progresso do preenchimento</span>
+        <span class="progress-count" id="progressCount">Seção 1 de 12</span>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:8%"></div>
+    </div>
+</div>
+
+<!-- STEPS NAV -->
+<div class="steps-nav" id="stepsNav">
+    <div class="step-pill active"  onclick="goTo(0)">Identificação</div>
+    <div class="step-pill"         onclick="goTo(1)">Objetivo</div>
+    <div class="step-pill"         onclick="goTo(2)">Histórico</div>
+    <div class="step-pill"         onclick="goTo(3)">Público-Alvo</div>
+    <div class="step-pill"         onclick="goTo(4)">Proposta de Valor</div>
+    <div class="step-pill"         onclick="goTo(5)">Comunicação</div>
+    <div class="step-pill"         onclick="goTo(6)">Objeções</div>
+    <div class="step-pill"         onclick="goTo(7)">Credibilidade</div>
+    <div class="step-pill"         onclick="goTo(8)">Concorrência</div>
+    <div class="step-pill"         onclick="goTo(9)">Atendimento</div>
+    <div class="step-pill"         onclick="goTo(10)">Investimento</div>
+    <div class="step-pill"         onclick="goTo(11)">Extras</div>
+</div>
+
+<div class="main">
+
+    <!-- INTRO (só aparece na seção 1) -->
+    <div class="intro-card" id="introCard">
+        <div class="intro-badge">Briefing Completo</div>
+        <h1>Briefing de <span>Gestão de Tráfego Pago</span></h1>
+        <p>Preencha com o máximo de detalhes possível. Quanto mais completo o briefing, mais assertiva e eficiente será a sua campanha!</p>
+        <div class="intro-stats">
+            <div class="intro-stat"><strong>12</strong><span>Seções</span></div>
+            <div class="intro-stat"><strong>28</strong><span>Questões</span></div>
+            <div class="intro-stat"><strong>~15 min</strong><span>Estimado</span></div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════
+         FORM — substitua a action pela URL do seu Google Forms
+         Cada campo name="entry.XXXXXXXX" deve corresponder
+         ao ID de entrada do respectivo campo no Google Forms.
+         Ver instruções no README ou ao final deste arquivo.
+    ═══════════════════════════════════════════════════ -->
+    <form id="briefingForm" onsubmit="return false">
+
+    <!-- ── SEÇÃO 1: IDENTIFICAÇÃO ── -->
+    <div class="section-card active" id="section-0">
+        <div class="info-box">
+            <span><strong>Para conectar ao Google Forms:</strong> crie seu formulário, acesse Incorporar HTML → copie a URL de envio e os IDs <code>entry.XXXXXXXX</code> de cada campo. Substitua os placeholders neste arquivo. <a href="https://support.google.com/a/users/answer/9308632" target="_blank" style="color:#5b21b6">Saiba mais →</a></span>
+        </div>
+        <div class="section-header">
+            <div class="section-icon">01</div>
+            <div class="section-info">
+                <h2>Identificação</h2>
+                <p>Dados de quem preenche e sobre o negócio que será anunciado.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Nome completo e cargo de quem responde <span class="req">*</span></label>
+            <input type="text" name="entry.2129828226" placeholder="Ex: João Silva – Gestor de Marketing" required>
+        </div>
+        <div class="field">
+            <label>Nome da empresa / produto / serviço que será anunciado <span class="req">*</span></label>
+            <input type="text" name="entry.1614707496" placeholder="Ex: Academia FitPro, Curso NR-35, Clínica Vitallis" required>
+        </div>
+        <div class="field">
+            <label>Descreva o que você faz, seu diferencial e segmento de atuação <span class="req">*</span>
+                <span class="hint">Inclua tempo de mercado, modelo de entrega (online/presencial), certificações, diferenciais</span>
+            </label>
+            <textarea name="entry.999506819" class="tall" placeholder="Ex: Escola de treinamentos NR com 8 anos de mercado, 100% online, certificado emitido em 24h..." required></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <span></span>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 2: OBJETIVO ── -->
+    <div class="section-card" id="section-1">
+        <div class="section-header">
+            <div class="section-icon">02</div>
+            <div class="section-info">
+                <h2>Objetivo da Campanha</h2>
+                <p>O norte estratégico de toda a campanha. Sem objetivo claro, não há otimização possível.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Qual é o objetivo principal desta campanha? <span class="req">*</span></label>
+            <div class="options-group">
+                <label class="option-chip"><input type="radio" name="entry.960023772" value="Gerar vendas diretas" onchange="selectChip(this)"><span>Gerar vendas diretas</span></label>
+                <label class="option-chip"><input type="radio" name="entry.960023772" value="Captar leads" onchange="selectChip(this)"><span>Captar leads</span></label>
+                <label class="option-chip"><input type="radio" name="entry.960023772" value="WhatsApp" onchange="selectChip(this)"><span>Direcionar ao WhatsApp</span></label>
+                <label class="option-chip"><input type="radio" name="entry.960023772" value="Agendamento" onchange="selectChip(this)"><span>Agendamento</span></label>
+                <label class="option-chip"><input type="radio" name="entry.960023772" value="Visibilidade de marca" onchange="selectChip(this)"><span>Visibilidade de marca</span></label>
+                <label class="option-chip"><input type="radio" name="entry.960023772" value="Promover evento" onchange="selectChip(this)"><span>Promover evento</span></label>
+                <label class="option-chip"><input type="radio" name="entry.960023772" value="Outro" onchange="selectChip(this)"><span>Outro</span></label>
+            </div>
+        </div>
+        <div class="field">
+            <label>Qual a ação exata que você quer que o usuário realize ao ver o anúncio? <span class="req">*</span>
+                <span class="hint">Ex: clicar no botão WhatsApp, preencher formulário de lead, comprar no checkout</span>
+            </label>
+            <input type="text" name="entry.1290669539" placeholder="Ex: Clicar em 'Falar no WhatsApp' na landing page" required>
+        </div>
+        <div class="field">
+            <label>Existe meta quantitativa para a campanha?
+                <span class="hint">Número de leads, CPA máximo, ROAS mínimo, alcance, ROI esperado</span>
+            </label>
+            <textarea name="entry.903436470" placeholder="Ex: 200 leads/mês, CPA máximo R$25, ROAS de 4x, alcance de 50 mil pessoas..."></textarea>
+        </div>
+        <div class="field">
+            <label>Esta campanha é para qual etapa do funil? <span class="req">*</span></label>
+            <div class="options-group">
+                <label class="option-chip"><input type="radio" name="entry.202396924" value="Topo – Descoberta e consciência" onchange="selectChip(this)"><span>Topo – Descoberta</span></label>
+                <label class="option-chip"><input type="radio" name="entry.202396924" value="Meio – Consideração e nutrição" onchange="selectChip(this)"><span>Meio – Consideração</span></label>
+                <label class="option-chip"><input type="radio" name="entry.202396924" value="Fundo – Conversão e fechamento" onchange="selectChip(this)"><span>Fundo – Conversão</span></label>
+                <label class="option-chip"><input type="radio" name="entry.202396924" value="Todos os funis" onchange="selectChip(this)"><span>Todos os funis</span></label>
+            </div>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 3: HISTÓRICO ── -->
+    <div class="section-card" id="section-2">
+        <div class="section-header">
+            <div class="section-icon">03</div>
+            <div class="section-info">
+                <h2>Histórico de Campanhas</h2>
+                <p>O que já foi feito aponta o que não repetir — e o que pode escalar.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Já rodou campanhas pagas anteriormente? <span class="req">*</span></label>
+            <div class="options-group">
+                <label class="option-chip"><input type="radio" name="entry.168485377" value="Sim" onchange="selectChip(this); showEl('historico-detalhe')"><span>Sim</span></label>
+                <label class="option-chip"><input type="radio" name="entry.168485377" value="Não – primeira campanha" onchange="selectChip(this); hideEl('historico-detalhe')"><span>Não – primeira campanha</span></label>
+            </div>
+        </div>
+        <div id="historico-detalhe" style="display:none">
+            <div class="field">
+                <label>Quais plataformas, quais resultados e principais aprendizados?
+                    <span class="hint">Ex: Meta Ads – 300 leads em 30 dias a R$18. Aprendizado: vídeo curto convertia 3x mais que imagem estática.</span>
+                </label>
+                <textarea name="entry.362422984" class="tall" placeholder="Descreva plataformas, métricas alcançadas, o que funcionou e o que não funcionou..."></textarea>
+            </div>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 4: PÚBLICO-ALVO ── -->
+    <div class="section-card" id="section-3">
+        <div class="section-header">
+            <div class="section-icon">04</div>
+            <div class="section-info">
+                <h2>Público-Alvo</h2>
+                <p>Quanto mais específico, mais precisa a segmentação e menor o custo por resultado.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Quem é o cliente ideal que você quer atingir? <span class="req">*</span>
+                <span class="hint">Idade, gênero, localização, profissão, renda, interesses, comportamentos, plataformas que usa</span>
+            </label>
+            <textarea name="entry.573735322" class="tall" placeholder="Ex: Homens e mulheres, 28–50 anos, RH ou gestores de segurança, empresas de 10+ funcionários, interior de SP e MG, usam Instagram e LinkedIn..." required></textarea>
+        </div>
+        <div class="field">
+            <label>Qual é a dor, problema ou necessidade mais urgente do seu público? <span class="req">*</span>
+                <span class="hint">A dor que o faz pesquisar sua solução agora, não amanhã</span>
+            </label>
+            <textarea name="entry.1145347112" placeholder="Ex: Precisa regularizar funcionários antes de uma fiscalização, prazo apertado, risco de multa..." required></textarea>
+        </div>
+        <div class="field">
+            <label>O que essa pessoa já tentou antes que não funcionou?
+                <span class="hint">Concorrentes, soluções alternativas, tentativas frustradas anteriores</span>
+            </label>
+            <textarea name="entry.1488995014" placeholder="Ex: Já fez curso presencial caro e demorado, tentou online mas sem certificado válido..."></textarea>
+        </div>
+        <div class="field">
+            <label>O que faria essa pessoa NÃO comprar / NÃO converter? <span class="req">*</span>
+                <span class="hint">Barreiras psicológicas, objeções antes mesmo de clicar no anúncio</span>
+            </label>
+            <textarea name="entry.604555179" placeholder="Ex: Desconfiança de golpe, preço acima do esperado, processo burocrático, não confiar na marca..." required></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 5: PROPOSTA DE VALOR ── -->
+    <div class="section-card" id="section-4">
+        <div class="section-header">
+            <div class="section-icon">05</div>
+            <div class="section-info">
+                <h2>Proposta de Valor e Oferta</h2>
+                <p>O coração da conversão — por que seu cliente deve escolher você, agora.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Qual é o principal benefício e diferencial competitivo do seu produto/serviço? <span class="req">*</span>
+                <span class="hint">Foque no BENEFÍCIO (resultado que o cliente obtém), não apenas na característica técnica</span>
+            </label>
+            <textarea name="entry.47319886" class="tall" placeholder="Ex: Certificado emitido em 24h, válido em todo Brasil, sem sair de casa, com suporte humanizado até a aprovação..." required></textarea>
+        </div>
+        <div class="field">
+            <label>O que está incluso na oferta? Bônus, preço e garantia?
+                <span class="hint">Tudo que compõe o pacote que será anunciado</span>
+            </label>
+            <textarea name="entry.1985580332" placeholder="Ex: Inclui apostila digital + certificado + suporte por 6 meses. Preço R$197. Garantia de 7 dias ou devolução total..."></textarea>
+        </div>
+        <div class="field">
+            <label>Existe oferta especial, desconto ou urgência para esta campanha?
+                <span class="hint">Promoção com prazo, vagas limitadas, bônus exclusivo para quem clicar no anúncio</span>
+            </label>
+            <textarea name="entry.2015470480" placeholder="Ex: 20% de desconto até sexta-feira, apenas 50 vagas disponíveis, bônus exclusivo de R$97..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 6: COMUNICAÇÃO ── -->
+    <div class="section-card" id="section-5">
+        <div class="section-header">
+            <div class="section-icon">06</div>
+            <div class="section-info">
+                <h2>Comunicação e Mensagem</h2>
+                <p>O que falar, como falar — e o que jamais deve ser dito.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Quais são as mensagens e argumentos principais para os anúncios? <span class="req">*</span>
+                <span class="hint">Frases de impacto, argumentos de venda, CTAs que devem aparecer</span>
+            </label>
+            <textarea name="entry.1974453216" class="tall" placeholder="Ex: 'Regularize sua empresa em 24h', 'Certificado reconhecido pelo MTE', 'Sem sair de casa'..." required></textarea>
+        </div>
+        <div class="field">
+            <label>Qual o tom de voz da comunicação? <span class="req">*</span></label>
+            <div class="options-group">
+                <label class="option-chip"><input type="checkbox" name="entry.1776010577" value="Direto e objetivo" onchange="toggleCheckChip(this)"><span>Direto</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1776010577" value="Formal e técnico" onchange="toggleCheckChip(this)"><span>Formal</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1776010577" value="Emocional e empático" onchange="toggleCheckChip(this)"><span>Emocional</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1776010577" value="Descontraído e próximo" onchange="toggleCheckChip(this)"><span>Descontraído</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1776010577" value="Urgente e persuasivo" onchange="toggleCheckChip(this)"><span>Urgente</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1776010577" value="Educativo e consultivo" onchange="toggleCheckChip(this)"><span>Educativo</span></label>
+            </div>
+        </div>
+        <div class="field">
+            <label>Palavras-chave de busca (Google Ads) e termos que DEVEM aparecer nos anúncios
+                <span class="hint">Termos técnicos, palavras que seu público digita, expressões que conectam</span>
+            </label>
+            <textarea name="entry.625385105" placeholder="Ex: NR-35, trabalho em altura, certificação válida, MTE, empresa regularizada, treinamento obrigatório..."></textarea>
+        </div>
+        <div class="field">
+            <label>O que NÃO deve ser comunicado? Restrições de mensagem ou imagem
+                <span class="hint">Promessas proibidas, termos a evitar, restrições legais ou de compliance</span>
+            </label>
+            <textarea name="entry.952744301" placeholder="Ex: Não mencionar preço da concorrência, não usar 'grátis', não prometer resultado garantido..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 7: OBJEÇÕES E GATILHOS ── -->
+    <div class="section-card" id="section-6">
+        <div class="section-header">
+            <div class="section-icon">07</div>
+            <div class="section-info">
+                <h2>Objeções e Gatilhos Mentais</h2>
+                <p>As barreiras que impedem a conversão — e como quebrá-las antes que apareçam.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Por que alguém hesitaria em comprar e como você quebra cada objeção? <span class="req">*</span>
+                <span class="hint">Liste objeção → resposta. Ex: "Certificado é válido?" → "Homologado pelo MTE, aceito em qualquer empresa"</span>
+            </label>
+            <textarea name="entry.972569932" class="tall" placeholder="Objeção 1: [descrição] → Resposta: [como quebrar]&#10;Objeção 2: [descrição] → Resposta: [como quebrar]" required></textarea>
+        </div>
+        <div class="field">
+            <label>Quais gatilhos mentais você tem disponíveis para usar? <span class="req">*</span></label>
+            <div class="options-group">
+                <label class="option-chip"><input type="checkbox" name="entry.1514506043" value="Escassez" onchange="toggleCheckChip(this)"><span>Escassez (vagas/estoque)</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1514506043" value="Urgência" onchange="toggleCheckChip(this)"><span>Urgência (prazo/promoção)</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1514506043" value="Autoridade" onchange="toggleCheckChip(this)"><span>Autoridade</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1514506043" value="Prova social" onchange="toggleCheckChip(this)"><span>Prova social</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1514506043" value="Reciprocidade" onchange="toggleCheckChip(this)"><span>Reciprocidade</span></label>
+                <label class="option-chip"><input type="checkbox" name="entry.1514506043" value="Garantia" onchange="toggleCheckChip(this)"><span>Garantia</span></label>
+            </div>
+        </div>
+        <div class="field">
+            <label>Descreva cada gatilho com detalhes concretos
+                <span class="hint">Ex: "50 vagas disponíveis", "Promoção encerra domingo às 23h59", "4.9 estrelas com 320 avaliações"</span>
+            </label>
+            <textarea name="entry.253548418" placeholder="Detalhe cada gatilho marcado acima com números, prazos, fatos reais..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 8: CREDIBILIDADE ── -->
+    <div class="section-card" id="section-7">
+        <div class="section-header">
+            <div class="section-icon">08</div>
+            <div class="section-info">
+                <h2>Prova e Credibilidade</h2>
+                <p>Evidências reais que eliminam a desconfiança e aceleram a decisão de compra.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Você tem depoimentos, cases, números ou resultados para usar nos anúncios? <span class="req">*</span>
+                <span class="hint">Depoimentos com nome/foto, número de clientes, resultados mensuráveis, antes e depois, prints, vídeos</span>
+            </label>
+            <textarea name="entry.1222848424" class="tall" placeholder="Ex: 1.200 empresas certificadas, depoimento em vídeo da gestora Maria (RH da Metalúrgica X), 4.9 no Google com 300 avaliações..." required></textarea>
+        </div>
+        <div class="field">
+            <label>Quais credenciais, certificações, parcerias ou reconhecimentos você pode destacar?
+                <span class="hint">Certificações do setor, parceiros estratégicos, prêmios, cobertura na mídia</span>
+            </label>
+            <textarea name="entry.1779053491" placeholder="Ex: Parceiro oficial SENAC, certificado ISO 9001, cobertura no G1, membro da Associação X..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 9: CONCORRÊNCIA ── -->
+    <div class="section-card" id="section-8">
+        <div class="section-header">
+            <div class="section-icon">09</div>
+            <div class="section-info">
+                <h2>Concorrência e Posicionamento</h2>
+                <p>Entender o mercado é saber onde posicionar sua oferta para se destacar.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Quem são seus principais concorrentes diretos e indiretos? <span class="req">*</span>
+                <span class="hint">Diretos = mesma solução; Indiretos = alternativas que seu público também considera</span>
+            </label>
+            <textarea name="entry.7379670" placeholder="Ex: Diretos: Empresa X, Plataforma Y. Indiretos: treinamento presencial da CIPA, planilha de controle interna..." required></textarea>
+        </div>
+        <div class="field">
+            <label>O que os concorrentes estão prometendo e como você se posiciona melhor?
+                <span class="hint">Argumento que te diferencia no mercado disputado</span>
+            </label>
+            <textarea name="entry.1250355671" placeholder="Ex: Eles prometem certificado em 3 dias → nós entregamos em 24h. Eles cobram R$350 → nós R$197 com mais conteúdo..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 10: ATENDIMENTO ── -->
+    <div class="section-card" id="section-9">
+        <div class="section-header">
+            <div class="section-icon">10</div>
+            <div class="section-info">
+                <h2>Atendimento e Pós-Conversão</h2>
+                <p>O lead chegou — o que acontece nos próximos minutos define se ele compra ou some.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Qual será o CTA principal e o fluxo de conversão? <span class="req">*</span>
+                <span class="hint">Botão WhatsApp, formulário de lead, checkout direto? Quantos passos até a compra?</span>
+            </label>
+            <textarea name="entry.899971757" placeholder="Ex: CTA 'Falar no WhatsApp' → lead entra, recebe mensagem automática → vendedor entra em contato em 5 min..." required></textarea>
+        </div>
+        <div class="field">
+            <label>Como você atende o lead após entrar? <span class="req">*</span>
+                <span class="hint">Fluxo de atendimento, tempo de resposta, canais (WhatsApp, CRM, ligação, e-mail)</span>
+            </label>
+            <textarea name="entry.811889097" placeholder="Ex: SDR no WhatsApp em até 5 min, script de 3 perguntas qualificadoras, passa para closer..." required></textarea>
+        </div>
+        <div class="field">
+            <label>O que é indispensável que o lead saiba ANTES de contratar?
+                <span class="hint">Pré-requisitos, prazo de entrega, processo de trabalho, o que está fora do escopo</span>
+            </label>
+            <textarea name="entry.892411130" placeholder="Ex: O curso exige 8h de dedicação, o certificado leva 1 dia útil, pagamento via Pix ou cartão..."></textarea>
+        </div>
+        <div class="field">
+            <label>Qual transformação/resultado o cliente deve perceber ao finalizar o processo?
+                <span class="hint">A promessa de transformação que conecta a dor inicial ao resultado final</span>
+            </label>
+            <textarea name="entry.1129208455" placeholder="Ex: Empresa regularizada, funcionários certificados, livre de autuação e com equipe mais segura..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 11: INVESTIMENTO ── -->
+    <div class="section-card" id="section-10">
+        <div class="section-header">
+            <div class="section-icon">11</div>
+            <div class="section-info">
+                <h2>Investimento, Restrições e Branding</h2>
+                <p>Os limites operacionais e a identidade que guiam a execução técnica da campanha.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Qual é o investimento disponível para a campanha (R$/mês)? <span class="req">*</span>
+                <span class="hint">Valor mensal total de mídia paga — quanto vai investir nos anúncios</span>
+            </label>
+            <input type="text" name="entry.1293398708" placeholder="Ex: R$ 3.000/mês, R$ 500/semana..." required>
+        </div>
+        <div class="field">
+            <label>Existe diretriz, política, restrição legal ou compliance a observar?
+                <span class="hint">Segmentos regulados (saúde, financeiro, educação), termos proibidos por lei, políticas de plataforma</span>
+            </label>
+            <textarea name="entry.1569039201" placeholder="Ex: Área regulada pela ANS, não podemos prometer resultado financeiro garantido..."></textarea>
+        </div>
+        <div class="field">
+            <label>Identidade visual: existe manual de marca, cores, fontes ou referências de design?
+                <span class="hint">Manual no Google Drive, cores da marca, referências de anúncios que você gosta</span>
+            </label>
+            <textarea name="entry.1971957601" placeholder="Ex: Manual em [link], cor principal #5b21b6, referências: anúncios da Empresa X no Meta..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-next" onclick="nextSection()">Próxima seção →</button>
+        </div>
+    </div>
+
+    <!-- ── SEÇÃO 12: EXTRAS ── -->
+    <div class="section-card" id="section-11">
+        <div class="section-header">
+            <div class="section-icon">12</div>
+            <div class="section-info">
+                <h2>Informações Complementares</h2>
+                <p>Tudo que não coube nas seções anteriores mas pode fazer diferença na campanha.</p>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Quais perguntas seus clientes mais fazem antes de contratar?
+                <span class="hint">FAQs reais — usamos para criar copy de anúncios que antecipam dúvidas e eliminam fricção</span>
+            </label>
+            <textarea name="entry.1191306308" placeholder="Ex: 'O certificado é aceito em todo Brasil?' / 'Posso fazer pelo celular?' / 'Tem prova?' / 'Qual a validade?'..."></textarea>
+        </div>
+        <div class="field">
+            <label>Alguma informação extra ou contexto importante para o sucesso da campanha?
+                <span class="hint">Sazonalidade, eventos do setor, particularidades do mercado, contexto atual do negócio</span>
+            </label>
+            <textarea name="entry.850955695" class="tall" placeholder="Qualquer contexto adicional relevante para a estratégia — quanto mais detalhe, melhor o resultado..."></textarea>
+        </div>
+
+        <div class="nav-btns">
+            <button type="button" class="btn btn-back" onclick="prevSection()">← Voltar</button>
+            <button type="button" class="btn btn-submit" onclick="submitForm()">Enviar Briefing Completo</button>
+        </div>
+    </div>
+
+    </form>
+
+    <!-- SUCCESS -->
+    <div class="success-card" id="successCard">
+        <div class="success-icon">OK</div>
+        <h2>Briefing enviado com sucesso!</h2>
+        <p>Recebemos todas as informações. A equipe DigitalCreate vai analisar seu briefing e entrar em contato em breve com a estratégia da campanha.</p>
+        <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e5e7eb;display:flex;flex-direction:column;gap:10px;align-items:center">
+          <p style="font-size:13px;color:#6b7280;margin-bottom:4px">💡 <strong>Guarde uma cópia das suas respostas:</strong></p>
+          <button onclick="downloadFormPDF()" style="background:linear-gradient(135deg,#5b21b6,#a855f7);color:#fff;border:none;border-radius:10px;padding:12px 28px;font-size:13.5px;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(124,58,237,.35)">📄 Baixar PDF das respostas</button>
+        </div>
+    </div>
+
+</div><!-- /main -->
+
+<script>
+    let current = 0;
+    const total = 12;
+
+    function updateUI() {
+        const pct = Math.round(((current + 1) / total) * 100);
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressCount').textContent = `Seção ${current + 1} de ${total}`;
+        document.querySelectorAll('.step-pill').forEach((p, i) => {
+            p.classList.remove('active','done');
+            if (i === current) p.classList.add('active');
+            else if (i < current) p.classList.add('done');
+        });
+        document.getElementById('introCard').style.display = current === 0 ? 'block' : 'none';
+    }
+
+    function goTo(idx) {
+        document.getElementById(`section-${current}`).classList.remove('active');
+        current = Math.max(0, Math.min(total - 1, idx));
+        document.getElementById(`section-${current}`).classList.add('active');
+        updateUI();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    const _secTitles = ['Identificação','Objetivo da Campanha','Histórico de Campanhas','Público-Alvo','Proposta de Valor e Oferta','Comunicação e Mensagem','Objeções e Gatilhos Mentais','Prova e Credibilidade','Concorrência e Posicionamento','Atendimento e Pós-Conversão','Investimento, Restrições e Branding','Informações Complementares'];
+
+    function _clearErrors() {
+        document.querySelectorAll('.field.v-error').forEach(f => { f.classList.remove('v-error'); f.querySelector('.field-err-msg')?.remove(); });
+        document.querySelectorAll('.sec-err-banner').forEach(b => b.remove());
+        document.querySelectorAll('.step-pill.has-err').forEach(p => p.classList.remove('has-err'));
+    }
+
+    function _markError(field, msg) {
+        field.classList.add('v-error');
+        if (!field.querySelector('.field-err-msg')) {
+            const el = document.createElement('div');
+            el.className = 'field-err-msg';
+            el.innerHTML = '⚠ ' + msg;
+            field.appendChild(el);
+        }
+    }
+
+    function _validateSection(idx) {
+        const sec = document.getElementById('section-' + idx);
+        if (!sec) return true;
+        const errFields = [];
+        sec.querySelectorAll('.field').forEach(field => {
+            const inputs = field.querySelectorAll('input,textarea,select');
+            let required = false, filled = false;
+            inputs.forEach(inp => { if (inp.required) required = true; });
+            if (!required) return;
+            const radios = field.querySelectorAll('input[type=radio]');
+            const checks = field.querySelectorAll('input[type=checkbox]');
+            if (radios.length) {
+                filled = [...radios].some(r => r.checked);
+            } else if (checks.length && checks[0].required) {
+                filled = [...checks].some(c => c.checked);
+            } else {
+                const inp = field.querySelector('input:not([type=radio]):not([type=checkbox]),textarea,select');
+                filled = inp && inp.value.trim() !== '';
+            }
+            if (!filled) {
+                const lbl = field.querySelector('label')?.childNodes[0]?.textContent?.trim() || 'Campo obrigatório';
+                _markError(field, lbl + ' é obrigatório');
+                errFields.push(lbl);
+            }
+        });
+        if (errFields.length) {
+            const pill = document.querySelectorAll('.step-pill')[idx];
+            if (pill) pill.classList.add('has-err');
+            if (!sec.querySelector('.sec-err-banner')) {
+                const banner = document.createElement('div');
+                banner.className = 'sec-err-banner';
+                banner.innerHTML = '⚠️ <div><strong>Seção ' + (idx+1) + ': ' + (_secTitles[idx]||'') + '</strong> — Preencha os campos obrigatórios:<br><span style="font-weight:400">' + errFields.join(', ') + '</span></div>';
+                sec.insertBefore(banner, sec.querySelector('.section-header') || sec.firstChild);
+            }
+            return false;
+        }
+        return true;
+    }
+
+    function _validateAll() {
+        _clearErrors();
+        let firstErr = -1;
+        for (let i = 0; i < total; i++) {
+            const ok = _validateSection(i);
+            if (!ok && firstErr === -1) firstErr = i;
+        }
+        if (firstErr !== -1) { goTo(firstErr); return false; }
+        return true;
+    }
+
+    function nextSection() { if (_validateSection(current)) goTo(current + 1); }
+    function prevSection() { goTo(current - 1); }
+
+    function selectChip(radio) {
+        radio.closest('.options-group').querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected'));
+        radio.closest('.option-chip').classList.add('selected');
+    }
+
+    function toggleCheckChip(cb) {
+        cb.closest('.option-chip').classList.toggle('selected', cb.checked);
+    }
+
+    function showEl(id) { document.getElementById(id).style.display = 'block'; }
+    function hideEl(id) { document.getElementById(id).style.display = 'none'; }
+
+    async function submitForm() {
+        const form = document.getElementById('briefingForm');
+        if (!_validateAll()) return;
+
+        const btn = form.querySelector('.btn-submit');
+        btn.textContent = 'Enviando...';
+        btn.disabled = true;
+
+        // Coleta todas as respostas
+        const fd = new FormData(form);
+        const data = {
+            nome_cargo:        fd.get('entry.2129828226') || '',
+            empresa:           fd.get('entry.1614707496') || '',
+            descricao:         fd.get('entry.999506819')  || '',
+            objetivo_principal:fd.get('entry.960023772')  || '',
+            acao_usuario:      fd.get('entry.1290669539') || '',
+            meta_quantitativa: fd.get('entry.903436470')  || '',
+            etapa_funil:       fd.get('entry.202396924')  || '',
+            rodou_antes:       fd.get('entry.168485377')  || '',
+            historico:         fd.get('entry.362422984')  || '',
+            cliente_ideal:     fd.get('entry.573735322')  || '',
+            dor:               fd.get('entry.1145347112') || '',
+            ja_tentou:         fd.get('entry.1488995014') || '',
+            nao_compraria:     fd.get('entry.604555179')  || '',
+            beneficio:         fd.get('entry.47319886')   || '',
+            oferta:            fd.get('entry.1985580332') || '',
+            urgencia:          fd.get('entry.2015470480') || '',
+            mensagens:         fd.get('entry.1974453216') || '',
+            tom_voz:           [...fd.getAll('entry.1776010577')].join(', '),
+            palavras_chave:    fd.get('entry.625385105')  || '',
+            nao_comunicar:     fd.get('entry.952744301')  || '',
+            objecoes:          fd.get('entry.972569932')  || '',
+            gatilhos:          [...fd.getAll('entry.1514506043')].join(', '),
+            gatilhos_detalhe:  fd.get('entry.253548418')  || '',
+            depoimentos:       fd.get('entry.1222848424') || '',
+            credenciais:       fd.get('entry.1779053491') || '',
+            concorrentes:      fd.get('entry.7379670')    || '',
+            posicionamento:    fd.get('entry.1250355671') || '',
+            cta_fluxo:         fd.get('entry.899971757')  || '',
+            atendimento:       fd.get('entry.811889097')  || '',
+            lead_saiba:        fd.get('entry.892411130')  || '',
+            transformacao:     fd.get('entry.1129208455') || '',
+            investimento:      fd.get('entry.1293398708') || '',
+            restricoes:        fd.get('entry.1569039201') || '',
+            identidade_visual: fd.get('entry.1971957601') || '',
+            faq:               fd.get('entry.1191306308') || '',
+            extras:            fd.get('entry.850955695')  || '',
+        };
+        const cqSeen = {};
+        document.querySelectorAll('[name^="cq_"]').forEach(inp => {
+          if (inp.type==='checkbox') { if (!cqSeen[inp.name]) cqSeen[inp.name]=[]; if(inp.checked) cqSeen[inp.name].push(inp.value); }
+          else if (inp.type==='radio') { if(inp.checked) data[inp.name]=inp.value; }
+          else data[inp.name]=inp.value;
+        });
+        Object.keys(cqSeen).forEach(k => { data[k]=cqSeen[k].join(', '); });
+
+        try {
+            await window._saveBriefing(data);
+            ['briefingForm','progressWrap','stepsNav','introCard'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'none';
+            });
+            document.getElementById('successCard').style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch(e) {
+            btn.textContent = 'Enviar Briefing Completo';
+            btn.disabled = false;
+            const msg = e?.code === 'permission-denied'
+              ? 'Permissão negada pelo banco de dados. Contacte o suporte da DigitalCreate.'
+              : (e?.message || String(e));
+            alert('Erro ao enviar:\n' + msg);
+        }
+    }
+
+    updateUI();
+    function downloadFormPDF() {
+      const win = window.open('', '_blank', 'width=800,height=700');
+      if (!win) { alert('Permita pop-ups para baixar o PDF.'); return; }
+      const form = document.getElementById('briefingForm');
+      const rows = [];
+      if (form) {
+        form.querySelectorAll('input:not([type=hidden]):not([type=submit]):not([type=button]),textarea,select').forEach(el => {
+          const label = el.closest('.field')?.querySelector('label')?.textContent?.split('\n')[0]?.trim() || el.name || '';
+          let val = '';
+          if (el.type === 'checkbox') { if (el.checked) val = el.value || '✓'; else return; }
+          else if (el.type === 'radio') { if (!el.checked) return; val = el.value; }
+          else val = el.value;
+          if (!val || !label) return;
+          rows.push({ label, val });
+        });
+      }
+      const now = new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      const tableRows = rows.map(r => `<tr><td style="font-weight:600;color:#374151;padding:8px 12px;border-bottom:1px solid #f3f4f6;white-space:nowrap;vertical-align:top;min-width:180px">${r.label}</td><td style="padding:8px 12px;border-bottom:1px solid #f3f4f6;color:#111827">${r.val.replace(/\n/g,'<br>')}</td></tr>`).join('');
+      win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Briefing – Tráfego Pago</title><style>@page{margin:2cm}body{font-family:Arial,sans-serif;color:#111827;font-size:10pt}h1{font-size:16pt;color:#5b21b6}table{width:100%;border-collapse:collapse}td{font-size:10pt}</style></head><body><h1>📋 Briefing – Tráfego Pago</h1><p style="color:#6b7280;font-size:9pt;margin-bottom:20px">DigitalCreate • Gerado em ${now}</p><table>${tableRows}</table></body></html>`);
+      win.document.close();
+      setTimeout(() => { win.focus(); win.print(); }, 400);
+    }
+</script>
+
+<!--
+════════════════════════════════════════════════════════════
+  COMO CONECTAR AO GOOGLE FORMS (Opção 1)
+════════════════════════════════════════════════════════════
+
+  1. Crie seu formulário no Google Forms com as mesmas perguntas.
+
+  2. Abra o formulário de RESPOSTA (link público), clique com
+     botão direito em qualquer campo → Inspecionar.
+     Procure por: name="entry.XXXXXXXXX"
+     Esse é o ID de cada campo.
+
+  3. No <form action="...">, substitua:
+     "COLE_AQUI_A_URL_DO_GOOGLE_FORMS_formResponse"
+     pela URL real do seu form, terminando em /formResponse
+     Exemplo: https://docs.google.com/forms/d/e/1FAIpQLSxxx.../formResponse
+
+  4. Substitua cada entry.2129828226, entry.1614707496... pelo entry.XXXXXXXX
+     real do campo correspondente no seu Google Forms.
+
+  5. Pronto! As respostas aparecerão na aba "Respostas" do Forms
+     e na planilha vinculada no Google Sheets.
+════════════════════════════════════════════════════════════
+-->
+</body>
+</html>

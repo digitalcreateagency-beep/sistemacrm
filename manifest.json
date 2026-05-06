@@ -1,0 +1,38 @@
+{
+  "name": "DigitalCreate CRM",
+  "short_name": "DC CRM",
+  "description": "CRM interno da agência DigitalCreate",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#7c5cfc",
+  "background_color": "#0d0d14",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "img/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/logo.png.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "CRM / Tarefas",
+      "url": "/?page=crm",
+      "description": "Abrir CRM"
+    },
+    {
+      "name": "Clientes",
+      "url": "/?page=clients",
+      "description": "Ver clientes"
+    }
+  ]
+}

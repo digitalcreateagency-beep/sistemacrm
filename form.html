@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formulário | DigitalCreate</title>
+<style>
+:root{--purple-dark:#1e1040;--purple-mid:#5b21b6;--purple-light:#7c3aed;--pink:#a855f7;--cyan:#06b6d4;--gray-50:#f9fafb;--gray-100:#f3f4f6;--gray-200:#e5e7eb;--gray-600:#4b5563;--gray-700:#374151;--gray-900:#111827}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,#1e1040 0%,#3b1f8c 45%,#7b2fb8 100%);min-height:100vh;color:var(--gray-900)}
+
+/* Header */
+.header{background:rgba(255,255,255,.07);backdrop-filter:blur(20px);border-bottom:1px solid rgba(255,255,255,.1);padding:14px 24px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.header-brand{color:#fff;font-size:17px;font-weight:700}
+.header-sep{width:1px;height:22px;background:rgba(255,255,255,.25);margin:0 8px}
+.header-title{color:rgba(255,255,255,.65);font-size:13px}
+
+/* Main */
+.main{max-width:720px;margin:0 auto;padding:32px 16px 80px}
+
+/* Intro card */
+.intro-card{background:#fff;border-radius:20px;padding:44px 40px;text-align:center;margin-bottom:24px;box-shadow:0 20px 60px rgba(0,0,0,.28)}
+.intro-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(91,33,182,.08),rgba(168,85,247,.08));border:1px solid rgba(124,58,237,.18);color:#5b21b6;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:600;margin-bottom:18px}
+.intro-card h1{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px;line-height:1.25}
+.intro-card h1 span{background:linear-gradient(135deg,#5b21b6,#a855f7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.intro-card p{color:var(--gray-600);font-size:14px;line-height:1.65;max-width:520px;margin:0 auto}
+
+/* Form card */
+.form-card{background:#fff;border-radius:20px;padding:36px 40px;box-shadow:0 20px 60px rgba(0,0,0,.25),0 4px 16px rgba(0,0,0,.12);animation:fadeIn .35s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.form-section-header{display:flex;align-items:flex-start;gap:16px;margin-bottom:28px;padding-bottom:22px;border-bottom:2px solid var(--gray-100)}
+.form-section-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#5b21b6,#a855f7);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;color:#fff}
+.form-section-info h2{font-size:19px;font-weight:700;color:var(--gray-900);margin-bottom:4px}
+.form-section-info p{font-size:13px;color:var(--gray-600);line-height:1.5}
+
+/* Fields */
+.field{margin-bottom:22px}
+.field label{display:block;font-size:13.5px;font-weight:600;color:var(--gray-700);margin-bottom:6px;line-height:1.45}
+.field label .req{color:#ef4444;margin-left:2px}
+.field label .hint{display:block;font-size:11.5px;font-weight:400;color:var(--gray-600);margin-top:2px;line-height:1.4}
+.field input[type="text"],
+.field input[type="email"],
+.field input[type="tel"],
+.field input[type="number"],
+.field input[type="date"],
+.field textarea,
+.field select{width:100%;padding:11px 15px;border:2px solid var(--gray-200);border-radius:10px;font-size:13.5px;font-family:inherit;color:var(--gray-900);background:var(--gray-50);transition:all .2s;outline:none;resize:vertical}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:#7c3aed;background:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.1)}
+.field textarea{min-height:96px}
+.field select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%236b7280' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
+
+/* Radio / Checkbox chips */
+.options-group{display:flex;flex-wrap:wrap;gap:8px;margin-top:7px}
+.option-chip{display:flex;align-items:center;gap:6px;padding:7px 13px;border:2px solid var(--gray-200);border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--gray-700);background:#fff;transition:all .2s;user-select:none}
+.option-chip:hover{border-color:#7c3aed;color:#5b21b6;background:rgba(124,58,237,.04)}
+.option-chip.selected{background:linear-gradient(135deg,#5b21b6,#7c3aed);border-color:transparent;color:#fff}
+.option-chip input{display:none}
+
+/* Submit */
+.submit-row{display:flex;justify-content:flex-end;margin-top:32px;padding-top:22px;border-top:2px solid var(--gray-100)}
+.btn-submit{background:linear-gradient(135deg,#06b6d4,#5b21b6);color:#fff;padding:12px 36px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none;font-family:inherit;transition:all .2s;box-shadow:0 4px 18px rgba(6,182,212,.35)}
+.btn-submit:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 26px rgba(6,182,212,.45)}
+.btn-submit:disabled{opacity:.6;cursor:not-allowed}
+
+/* Success */
+.success-card{background:#fff;border-radius:20px;padding:64px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25);display:none}
+.success-icon{width:80px;height:80px;background:linear-gradient(135deg,#06b6d4,#a855f7);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 22px}
+.success-card h2{font-size:26px;font-weight:800;color:var(--gray-900);margin-bottom:10px}
+.success-card p{color:var(--gray-600);font-size:14px;line-height:1.65}
+
+/* Loading / Error */
+.state-card{background:#fff;border-radius:20px;padding:64px 40px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.spinner{width:44px;height:44px;border:4px solid rgba(124,58,237,.2);border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 20px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.state-card h2{font-size:20px;font-weight:700;color:var(--gray-900);margin-bottom:8px}
+.state-card p{color:var(--gray-600);font-size:14px}
+.error-icon{font-size:48px;margin-bottom:16px}
+
+/* Field error */
+.field-error{font-size:12px;color:#ef4444;margin-top:5px;display:none}
+.field.has-error input,.field.has-error textarea,.field.has-error select{border-color:#ef4444;background:#fff5f5}
+.field.has-error .field-error{display:block}
+
+@media(max-width:600px){
+  .intro-card,.form-card{padding:24px 18px}
+  .intro-card h1{font-size:21px}
+  .form-section-header{flex-direction:column;gap:10px}
+  .btn-submit{width:100%}
+  .submit-row{justify-content:stretch}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">✦ DigitalCreate</div>
+  <div class="header-sep"></div>
+  <div class="header-title" id="headerTitle">Formulário</div>
+</div>
+
+<div class="main" id="mainArea">
+  <!-- Loading state -->
+  <div class="state-card" id="stateLoading">
+    <div class="spinner"></div>
+    <h2>Carregando formulário…</h2>
+    <p>Aguarde um momento</p>
+  </div>
+
+  <!-- Error state (hidden initially) -->
+  <div class="state-card" id="stateError" style="display:none">
+    <div class="error-icon">😕</div>
+    <h2>Formulário não encontrado</h2>
+    <p id="stateErrorMsg">O link pode estar incorreto ou o formulário foi removido.</p>
+  </div>
+
+  <!-- Intro card (hidden initially) -->
+  <div class="intro-card" id="introCard" style="display:none">
+    <div class="intro-badge">✦ DigitalCreate</div>
+    <h1 id="formTitle"><span>Formulário</span></h1>
+    <p id="formDesc"></p>
+  </div>
+
+  <!-- Form card (hidden initially) -->
+  <div class="form-card" id="formCard" style="display:none">
+    <div class="form-section-header">
+      <div class="form-section-icon">📋</div>
+      <div class="form-section-info">
+        <h2 id="formCardTitle">Preencha os campos</h2>
+        <p>Todos os campos marcados com <span style="color:#ef4444">*</span> são obrigatórios</p>
+      </div>
+    </div>
+    <div id="formFields"></div>
+    <div class="submit-row">
+      <button class="btn-submit" id="btnSubmit" onclick="submitForm()">Enviar formulário ✦</button>
+    </div>
+  </div>
+
+  <!-- Success card (hidden initially) -->
+  <div class="success-card" id="successCard">
+    <div class="success-icon">🎉</div>
+    <h2>Recebemos suas respostas!</h2>
+    <p>Obrigado pelo preenchimento. Nossa equipe vai analisar as informações em breve e entrará em contato se necessário.</p>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, addDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const app = initializeApp({
+  apiKey: "AIzaSyD775h8BBglzDCSx2jkC5hKT97qJGZ-MJg",
+  authDomain: "crm-digitalcreate.firebaseapp.com",
+  projectId: "crm-digitalcreate"
+});
+const db  = getFirestore(app);
+const auth = getAuth(app);
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+function $(id){ return document.getElementById(id); }
+
+function showState(state){
+  $('stateLoading').style.display = state === 'loading'  ? '' : 'none';
+  $('stateError').style.display   = state === 'error'    ? '' : 'none';
+  $('introCard').style.display    = state === 'ready'    ? '' : 'none';
+  $('formCard').style.display     = state === 'ready'    ? '' : 'none';
+  $('successCard').style.display  = state === 'success'  ? '' : 'none';
+}
+
+function chipSelect(input){
+  const group = input.closest('.options-group');
+  const isRadio = input.type === 'radio';
+  if(isRadio) group.querySelectorAll('.option-chip').forEach(c => c.classList.remove('selected'));
+  input.closest('.option-chip').classList.toggle('selected', input.checked || isRadio);
+  if(isRadio) input.closest('.option-chip').classList.add('selected');
+}
+
+window.chipSelect = chipSelect;
+
+// ── render fields ─────────────────────────────────────────────────────────────
+function renderField(f){
+  const reqMark = f.required ? '<span class="req">*</span>' : '';
+  const hintHtml = f.hint ? `<span class="hint">${f.hint}</span>` : '';
+  const reqAttr  = f.required ? ' required' : '';
+  const id = 'f_' + f.id;
+
+  let input = '';
+
+  if(f.type === 'text'){
+    input = `<input type="text" id="${id}" name="${id}"${reqAttr} placeholder="${f.placeholder||''}">`;
+  } else if(f.type === 'textarea'){
+    input = `<textarea id="${id}" name="${id}"${reqAttr} placeholder="${f.placeholder||''}"></textarea>`;
+  } else if(f.type === 'email'){
+    input = `<input type="email" id="${id}" name="${id}"${reqAttr} placeholder="${f.placeholder||'ex: email@exemplo.com'}">`;
+  } else if(f.type === 'phone'){
+    input = `<input type="tel" id="${id}" name="${id}"${reqAttr} placeholder="${f.placeholder||'(00) 00000-0000'}">`;
+  } else if(f.type === 'number'){
+    input = `<input type="number" id="${id}" name="${id}"${reqAttr} placeholder="${f.placeholder||''}">`;
+  } else if(f.type === 'date'){
+    input = `<input type="date" id="${id}" name="${id}"${reqAttr}>`;
+  } else if(f.type === 'select'){
+    const opts = (f.options||[]).map(o => `<option value="${o}">${o}</option>`).join('');
+    input = `<select id="${id}" name="${id}"${reqAttr}><option value="">Selecione uma opção…</option>${opts}</select>`;
+  } else if(f.type === 'radio'){
+    const chips = (f.options||[]).map(o =>
+      `<label class="option-chip"><input type="radio" name="${id}" value="${o}"${reqAttr} onchange="chipSelect(this)"><span>${o}</span></label>`
+    ).join('');
+    input = `<div class="options-group">${chips}</div>`;
+  } else if(f.type === 'checkbox'){
+    const chips = (f.options||[]).map(o =>
+      `<label class="option-chip"><input type="checkbox" name="${id}" value="${o}" onchange="chipSelect(this)"><span>${o}</span></label>`
+    ).join('');
+    input = `<div class="options-group">${chips}</div>`;
+  }
+
+  return `
+    <div class="field" data-field-id="${f.id}" data-required="${f.required||false}" data-type="${f.type}">
+      <label for="${id}">${f.label}${reqMark}${hintHtml}</label>
+      ${input}
+      <div class="field-error">Este campo é obrigatório</div>
+    </div>`;
+}
+
+// ── validation ────────────────────────────────────────────────────────────────
+function validateForm(fields){
+  let ok = true;
+  fields.forEach(f => {
+    const wrap = document.querySelector(`[data-field-id="${f.id}"]`);
+    if(!wrap) return;
+    wrap.classList.remove('has-error');
+    if(!f.required) return;
+
+    if(f.type === 'radio'){
+      const checked = wrap.querySelector('input[type="radio"]:checked');
+      if(!checked){ wrap.classList.add('has-error'); ok = false; }
+    } else if(f.type === 'checkbox'){
+      const checked = wrap.querySelector('input[type="checkbox"]:checked');
+      if(!checked){ wrap.classList.add('has-error'); ok = false; }
+    } else {
+      const input = wrap.querySelector('input,textarea,select');
+      if(!input || !input.value.trim()){ wrap.classList.add('has-error'); ok = false; }
+    }
+  });
+  return ok;
+}
+
+// ── collect values ─────────────────────────────────────────────────────────────
+function collectValues(fields){
+  const data = {};
+  fields.forEach(f => {
+    const wrap = document.querySelector(`[data-field-id="${f.id}"]`);
+    if(!wrap) return;
+    if(f.type === 'radio'){
+      const checked = wrap.querySelector('input[type="radio"]:checked');
+      data[f.label] = checked ? checked.value : '';
+    } else if(f.type === 'checkbox'){
+      const checked = [...wrap.querySelectorAll('input[type="checkbox"]:checked')];
+      data[f.label] = checked.map(c => c.value).join(', ');
+    } else {
+      const input = wrap.querySelector('input,textarea,select');
+      data[f.label] = input ? input.value.trim() : '';
+    }
+  });
+  return data;
+}
+
+// ── submit ────────────────────────────────────────────────────────────────────
+let _formId   = null;
+let _formData = null;
+
+window.submitForm = async function(){
+  if(!_formData) return;
+  if(!validateForm(_formData.fields || [])){
+    const firstErr = document.querySelector('.field.has-error');
+    if(firstErr) firstErr.scrollIntoView({behavior:'smooth',block:'center'});
+    return;
+  }
+  const btn = $('btnSubmit');
+  btn.disabled = true;
+  btn.textContent = 'Enviando…';
+  try {
+    const values = collectValues(_formData.fields || []);
+    await addDoc(collection(db, 'crm_form_responses'), {
+      formId:    _formId,
+      formTitle: _formData.title || '',
+      data:      values,
+      submittedAt: new Date().toISOString()
+    });
+    showState('success');
+    window.scrollTo({top:0,behavior:'smooth'});
+  } catch(e){
+    console.error(e);
+    btn.disabled = false;
+    btn.textContent = 'Enviar formulário ✦';
+    alert('Erro ao enviar: ' + (e.message || e.code || 'tente novamente'));
+  }
+};
+
+// ── init ──────────────────────────────────────────────────────────────────────
+(async () => {
+  showState('loading');
+
+  // get ?id= from URL
+  const params = new URLSearchParams(location.search);
+  _formId = params.get('id');
+
+  if(!_formId){
+    $('stateErrorMsg').textContent = 'Nenhum ID de formulário informado na URL.';
+    showState('error');
+    return;
+  }
+
+  // anonymous auth so Firestore rules pass
+  try { if(!auth.currentUser) await signInAnonymously(auth); } catch(_){}
+
+  // load form definition
+  try {
+    const snap = await getDoc(doc(db, 'crm_custom_forms', _formId));
+    if(!snap.exists()){
+      $('stateErrorMsg').textContent = 'Formulário não encontrado ou link expirado.';
+      showState('error');
+      return;
+    }
+    _formData = snap.data();
+  } catch(e){
+    $('stateErrorMsg').textContent = 'Erro ao carregar o formulário: ' + (e.message || e.code);
+    showState('error');
+    return;
+  }
+
+  // fill UI
+  const title = _formData.title || 'Formulário';
+  const desc  = _formData.description || '';
+  document.title = title + ' | DigitalCreate';
+  $('headerTitle').textContent = title;
+  $('formTitle').innerHTML = `<span>${title}</span>`;
+  $('formDesc').textContent = desc;
+  $('formCardTitle').textContent = title;
+  if(!desc) $('introCard').querySelector('p').style.display = 'none';
+
+  // render fields
+  const fields = _formData.fields || [];
+  $('formFields').innerHTML = fields.map(renderField).join('');
+
+  showState('ready');
+})();
+</script>
+</body>
+</html>

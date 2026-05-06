@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>DigitalCreate — CRM v3</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#7c5cfc">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DC CRM">
+<link rel="apple-touch-icon" href="/img/icon-192.png">
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js'));
+  }
+
+  // Gera ícones PWA dinamicamente via canvas (fallback enquanto não há PNG)
+  function _generatePwaIcon(size) {
+    const c = document.createElement('canvas');
+    c.width = c.height = size;
+    const ctx = c.getContext('2d');
+    const grad = ctx.createLinearGradient(0, 0, size, size);
+    grad.addColorStop(0, '#7c5cfc');
+    grad.addColorStop(1, '#38b6ff');
+    ctx.fillStyle = grad;
+    const r = size * 0.18;
+    ctx.beginPath();
+    ctx.moveTo(r, 0); ctx.lineTo(size - r, 0);
+    ctx.quadraticCurveTo(size, 0, size, r);
+    ctx.lineTo(size, size - r);
+    ctx.quadraticCurveTo(size, size, size - r, size);
+    ctx.lineTo(r, size); ctx.quadraticCurveTo(0, size, 0, size - r);
+    ctx.lineTo(0, r); ctx.quadraticCurveTo(0, 0, r, 0);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = `bold ${size * 0.38}px Arial`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DC', size / 2, size / 2);
+    return c.toDataURL('image/png');
+  }
+
+  // Injeta link de ícone apple-touch dinamicamente
+  window.addEventListener('DOMContentLoaded', () => {
+    try {
+      const icon192 = _generatePwaIcon(192);
+      const el = document.querySelector('link[rel="apple-touch-icon"]');
+      if (el) el.href = icon192;
+    } catch(e) {}
+  });
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Raleway:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Lato:ital,wght@0,300;0,400;0,700;1,400&family=Open+Sans:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Nunito:ital,wght@0,300;0,400;0,600;0,700;1,400&family=Oswald:wght@300;400;500;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Merriweather:ital,wght@0,300;0,400;0,700;1,400&family=Dancing+Script:wght@400;600;700&family=Pacifico&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script type="module" src="js/firebase-config.js?v=2"></script>
+</head><body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" style="display:flex">
+  <div class="login-box">
+    <div class="login-logo">DC</div>
+    <div class="login-title">DigitalCreate CRM</div>
+    <div class="login-sub">Acesso restrito à equipe. Entre com sua conta Google.</div>
+    <button class="btn-google" onclick="window.doGoogleLogin()">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+      Entrar com Google
+    </button>
+    <div class="login-footer">Ao entrar, você concorda com o uso interno desta ferramenta.</div>
+  </div>
+</div>
+
+<!-- SENHA DE ACESSO -->
+<div id="senha-screen" style="display:none;position:fixed;inset:0;background:var(--bg-base);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:0">
+  <div class="login-box">
+    <div class="login-logo">🔒</div>
+    <div class="login-title">Verificação de Acesso</div>
+    <div class="login-sub" id="senha-sub">Digite a senha da equipe para continuar.</div>
+    <input id="senha-input" type="password" placeholder="Senha de acesso" style="width:100%;padding:12px 16px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg-card2);color:var(--text-primary);font-family:var(--font);font-size:14px;outline:none;margin-bottom:12px;box-sizing:border-box" onkeydown="if(event.key==='Enter')verificarSenha()">
+    <button class="btn-google" style="background:var(--accent);color:#fff;border:none;justify-content:center" onclick="verificarSenha()">Entrar</button>
+    <div style="margin-top:14px;font-size:11.5px;color:var(--text-muted);cursor:pointer" onclick="window.doSignOut()">← Voltar e trocar de conta</div>
+  </div>
+</div>
+<div id="app-root" style="display:none;width:100%;min-height:100vh">
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <!-- Logo personalizada: coloque logo.png ou logo.svg na pasta img/ do projeto -->
+      <div class="logo-mark" id="logo-mark-wrap">
+        <img id="sidebar-logo-img" src="img/logo.png" alt="Logo"
+          style="max-height:44px;max-width:160px;object-fit:contain;border-radius:6px;display:block"
+          onerror="document.getElementById('sidebar-logo-img').style.display='none';document.getElementById('sidebar-logo-fallback').style.display='flex'">
+        <div id="sidebar-logo-fallback" style="display:none;align-items:center;gap:10px">
+          <div class="logo-icon">DC</div>
+          <div class="logo-text">
+            <div class="logo-name">DigitalCreate</div>
+            <div class="logo-sub">Agência de Marketing Digital</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Visão Geral</div>
+      <div class="nav-item" id="nav-dashboard" onclick="showPage('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item active" id="nav-crm" onclick="showPage('crm')">
+        <span class="nav-icon">📋</span> CRM / Tarefas
+      </div>
+      <div class="nav-item" id="nav-jornada" onclick="showPage('jornada')">
+        <span class="nav-icon">🚀</span> Jornada
+      </div>
+      <div class="nav-item" onclick="showPage('lembretes')" id="nav-lembretes">
+        <span class="nav-icon">🔔</span> Lembretes
+        <span id="lembrete-badge" style="display:none;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:8px;margin-left:auto">0</span>
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Gestão</div>
+      <div class="nav-item" id="nav-clients" onclick="showPage('clients')">
+        <span class="nav-icon">👥</span> Clientes
+      </div>
+      <div class="nav-item nav-financeiro" id="nav-financeiro" onclick="showPage('financeiro')">
+        <span class="nav-icon">💰</span> Financeiro
+      </div>
+      <div class="nav-item" id="nav-prospeccao" onclick="showPage('prospeccao')">
+        <span class="nav-icon">🎯</span> Prospecção
+      </div>
+      <div class="nav-item" id="nav-docs" onclick="showPage('docs')">
+        <span class="nav-icon">📝</span> Documentos
+      </div>
+      <div class="nav-item" id="nav-files" onclick="showPage('files')">
+        <span class="nav-icon">🗂️</span> Arquivos
+      </div>
+    </div>
+    <div class="sidebar-section" id="nav-section-formularios">
+      <div class="sidebar-label">Formulários</div>
+      <div class="nav-item" id="nav-custom-forms" onclick="showPage('custom-forms')" style="font-weight:600;color:var(--accent)">
+        <span class="nav-icon">✨</span> Meus Formulários
+      </div>
+      <div class="nav-item" id="nav-briefings-trafego" onclick="showPage('briefings-trafego')">
+        <span class="nav-icon">📊</span> Tráfego Pago
+      </div>
+      <div class="nav-item" id="nav-briefings-gmb" onclick="showPage('briefings-gmb')">
+        <span class="nav-icon">📍</span> Google Meu Negócio
+      </div>
+      <div class="nav-item" id="nav-briefings-contrato" onclick="showPage('briefings-contrato')">
+        <span class="nav-icon">📄</span> Contrato
+      </div>
+      <div class="nav-item" id="nav-briefings-satisfacao" onclick="showPage('briefings-satisfacao')">
+        <span class="nav-icon">⭐</span> Satisfação
+      </div>
+      <div class="nav-item" id="nav-briefings-sites" onclick="showPage('briefings-sites')">
+        <span class="nav-icon">🌐</span> Sites / Landing Pages
+      </div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Equipe</div>
+      <div id="team-nav-list"></div>
+      <button class="add-group-btn nav-team" style="margin-top:6px;font-size:11px;padding:7px 10px" onclick="openTeamModal()">⚙️ Gerenciar equipe</button>
+      <button class="add-group-btn nav-team" style="margin-top:4px;font-size:11px;padding:7px 10px;background:rgba(124,92,252,.08)" onclick="openUsersModal()">👥 Gerenciar usuários</button>
+    </div>
+    <div class="sidebar-section" id="nav-section-inteligencia">
+      <div class="sidebar-label">Inteligência</div>
+      <div class="nav-item" id="nav-ia" onclick="showPage('ia')">
+        <span class="nav-icon">🤖</span> IA da Agência
+      </div>
+      <div class="nav-item" id="nav-contratos-ia" onclick="showPage('contratos-ia')">
+        <span class="nav-icon">📄</span> Agente de Contratos
+      </div>
+    </div>
+    <div class="sidebar-section nav-team">
+      <div class="sidebar-label">Integrações</div>
+      <div class="nav-item" id="nav-drive" onclick="openDrivePanel()" title="Conectar e acessar pastas do Google Drive">
+        <span class="nav-icon">📁</span> Google Drive
+      </div>
+    </div>
+    <div class="sidebar-section nav-team" id="nav-section-settings">
+      <div class="sidebar-label">Administração</div>
+      <div class="nav-item" id="nav-settings" onclick="showPage('settings')">
+        <span class="nav-icon">⚙️</span> Configurações
+      </div>
+    </div>
+    <div class="sidebar-bottom">
+      <div style="display:flex;align-items:center;gap:6px">
+        <div class="user-pill" onclick="openProfileModal()" style="cursor:pointer;flex:1;padding:8px 10px" title="Editar perfil">
+          <img id="sidebar-user-photo" src="" style="display:none;width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0">
+          <div class="avatar" id="sidebar-user-avatar">?</div>
+          <div class="user-info">
+            <div class="user-name" id="sidebar-user-name">Carregando...</div>
+            <div class="user-role" id="sidebar-user-role">—</div>
+          </div>
+        </div>
+        <button onclick="window.doLogout()" title="Sair" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--text-muted);cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;transition:all .15s" onmouseover="this.style.color='var(--red)';this.style.borderColor='var(--red)'" onmouseout="this.style.color='var(--text-muted)';this.style.borderColor='var(--border)'">⏏</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="mobile-topbar-nav">
+        <button class="hamburger-btn" onclick="toggleMobileSidebar()" title="Menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+      <div class="page-title" id="page-title"><span>CRM</span> — Tarefas</div>
+      <div class="topbar-search">
+        <span class="search-icon">🔍</span>
+        <input type="text" placeholder="Buscar cliente, tarefa..." id="global-search" oninput="onSearch(this.value)">
+      </div>
+      <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
+        <span class="tt-icon" id="theme-icon">🌙</span>
+        <span id="theme-label">Claro</span>
+      </button>
+      <button class="notif-btn" onclick="openLabelsModal()" title="Gerenciar etiquetas" style="font-size:13px">🏷️</button>
+      <button class="notif-btn" id="notif-btn" onclick="toggleNotifPanel()" title="Notificações">
+        🔔
+        <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+      </button>
+      <button class="btn btn-primary" id="top-new-btn" onclick="openNewModal()">+ Novo item</button>
+    </div>
+    <!-- NOTIFICATION PANEL -->
+    <div id="notif-panel" style="display:none;position:fixed;top:60px;right:16px;width:340px;max-height:480px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,.25);z-index:9999;overflow:hidden;flex-direction:column">
+      <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;font-weight:700">🔔 Notificações</div>
+        <button class="btn btn-ghost" style="font-size:10px;padding:3px 8px" onclick="clearAllNotifs()">Limpar tudo</button>
+      </div>
+      <div id="notif-list" style="overflow-y:auto;max-height:400px;padding:8px 0"></div>
+    </div>
+    <div class="content" id="main-content"></div>
+  </div>
+</div>
+
+<!-- MOBILE NEW-ITEM FAB -->
+<button id="mob-fab-new" onclick="openNewModal()" style="
+  display:none;
+  position:fixed;bottom:76px;right:16px;z-index:120;
+  width:52px;height:52px;border-radius:50%;
+  background:var(--accent-grad);color:#fff;
+  border:none;cursor:pointer;font-size:26px;font-weight:300;
+  box-shadow:0 6px 20px rgba(124,92,252,0.5);
+  align-items:center;justify-content:center;
+  transition:transform .15s,box-shadow .15s;
+" onmouseover="this.style.transform='scale(1.08)'" onmouseout="this.style.transform='scale(1)'">+</button>
+
+<!-- MOBILE OVERLAY -->
+<div class="mobile-overlay" id="mobile-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav class="mobile-bottom-nav">
+  <button class="mob-nav-item active" id="mob-crm" onclick="showPage('crm');setMobActive('mob-crm')">
+    <div class="mob-nav-dot"></div>
+    <span class="mob-icon">📋</span>
+    <span>CRM</span>
+  </button>
+  <button class="mob-nav-item" id="mob-clients" onclick="showPage('clients');setMobActive('mob-clients')">
+    <div class="mob-nav-dot"></div>
+    <span class="mob-icon">👥</span>
+    <span>Clientes</span>
+  </button>
+  <button class="mob-nav-item" id="mob-financeiro" onclick="showPage('financeiro');setMobActive('mob-financeiro')">
+    <div class="mob-nav-dot"></div>
+    <span class="mob-icon">💰</span>
+    <span>Financeiro</span>
+  </button>
+  <button class="mob-nav-item" id="mob-prospeccao" onclick="showPage('prospeccao');setMobActive('mob-prospeccao')">
+    <div class="mob-nav-dot"></div>
+    <span class="mob-icon">🎯</span>
+    <span>Prospecção</span>
+  </button>
+  <button class="mob-nav-item" id="mob-menu" onclick="toggleMobileSidebar()">
+    <div class="mob-nav-dot"></div>
+    <span class="mob-icon">☰</span>
+    <span>Menu</span>
+  </button>
+</nav>
+
+<!-- MODAL PERFIL DO USUÁRIO -->
+<div class="modal-overlay" id="modal-perfil" style="z-index:9998">
+  <div class="modal" style="width:480px;max-width:95vw">
+    <div class="modal-header">
+      <div class="modal-title">👤 Meu Perfil</div>
+      <button class="modal-close" onclick="document.getElementById('modal-perfil').classList.remove('open')">✕</button>
+    </div>
+
+    <!-- Foto -->
+    <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:22px">
+      <div style="position:relative;width:88px;height:88px">
+        <img id="perfil-foto-preview" src="" style="display:none;width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid var(--accent)">
+        <div id="perfil-foto-placeholder" style="width:88px;height:88px;border-radius:50%;background:var(--accent-grad);display:flex;align-items:center;justify-content:center;font-size:32px;font-weight:700;color:#fff;border:3px solid var(--border)" id="perfil-avatar-letters">?</div>
+        <label for="perfil-foto-input" style="position:absolute;bottom:0;right:0;background:var(--accent);color:#fff;border-radius:50%;width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.3)" title="Alterar foto">📷</label>
+        <input type="file" id="perfil-foto-input" accept="image/*" style="display:none" onchange="previewPerfilFoto(this)">
+      </div>
+      <div id="perfil-foto-status" style="font-size:11px;color:var(--text-muted)">Clique em 📷 para alterar</div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Nome completo</label>
+        <input type="text" id="perfil-nome" placeholder="Seu nome">
+      </div>
+      <div class="form-row">
+        <label>Cargo / Função</label>
+        <input type="text" id="perfil-cargo" placeholder="Ex: Designer, Gestor de Tráfego">
+      </div>
+      <div class="form-row">
+        <label>Data de nascimento</label>
+        <input type="date" id="perfil-nascimento">
+      </div>
+      <div class="form-row">
+        <label>WhatsApp</label>
+        <input type="text" id="perfil-whatsapp" placeholder="(00) 00000-0000">
+      </div>
+      <div class="form-row form-full">
+        <label>Sobre mim</label>
+        <textarea id="perfil-sobre" placeholder="Uma breve descrição sobre você para a equipe..." style="min-height:80px;resize:vertical"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-perfil').classList.remove('open')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarPerfil()">💾 Salvar perfil</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VER PERFIL DE MEMBRO -->
+<div class="modal-overlay" id="modal-ver-perfil" style="z-index:9998">
+  <div class="modal" style="width:400px;max-width:95vw">
+    <div class="modal-header">
+      <div class="modal-title" id="ver-perfil-titulo">Perfil</div>
+      <button class="modal-close" onclick="document.getElementById('modal-ver-perfil').classList.remove('open')">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 0 20px">
+      <img id="ver-perfil-foto" src="" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;border:3px solid var(--accent)">
+      <div id="ver-perfil-avatar" style="width:80px;height:80px;border-radius:50%;background:var(--accent-grad);display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:700;color:#fff">?</div>
+      <div style="text-align:center">
+        <div style="font-size:16px;font-weight:700" id="ver-perfil-nome">—</div>
+        <div style="font-size:12px;color:var(--text-muted);margin-top:3px" id="ver-perfil-cargo">—</div>
+      </div>
+    </div>
+    <div id="ver-perfil-detalhes" style="display:flex;flex-direction:column;gap:8px"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-ghost" onclick="document.getElementById('modal-ver-perfil').classList.remove('open')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- UPDATES BACKDROP -->
+<div class="updates-backdrop" id="updates-backdrop" onclick="closeUpdates()"></div>
+
+<!-- UPDATES SIDE PANEL -->
+<div class="updates-panel" id="updates-panel">
+  <button class="updates-close-btn" onclick="closeUpdates()">✕</button>
+  <div class="updates-header">
+    <div class="updates-item-name" id="updates-item-name">—</div>
+    <div id="updates-drive-folders" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px"></div>
+    <div class="updates-item-meta" id="updates-item-meta"></div>
+    <div class="updates-tabs">
+      <div class="updates-tab active" onclick="switchUpdatesTab('updates',this)">Atualizações</div>
+      <div class="updates-tab" onclick="switchUpdatesTab('checklist',this)">✅ Checklist</div>
+      <div class="updates-tab" onclick="switchUpdatesTab('activity',this)">Log</div>
+    </div>
+  </div>
+  <div class="updates-body" id="updates-body"></div>
+  <div class="updates-compose" id="updates-compose-area">
+    <div class="compose-box">
+      <!-- @ mention dropdown -->
+      <div id="mention-dropdown" style="display:none;position:absolute;bottom:100%;left:0;right:0;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:200;max-height:180px;overflow-y:auto;margin-bottom:4px"></div>
+      <!-- Reply preview -->
+      <div id="compose-reply-preview" style="display:none;margin:6px 10px 0;border-left:3px solid var(--purple);padding:5px 10px;background:rgba(124,92,252,.07);border-radius:0 8px 8px 0">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+          <div style="min-width:0;flex:1">
+            <div id="reply-author-name" style="font-size:10.5px;font-weight:700;color:var(--purple);margin-bottom:2px"></div>
+            <div id="reply-text-preview" style="font-size:11.5px;color:var(--text-secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
+          </div>
+          <button onclick="clearReply()" style="background:none;border:none;cursor:pointer;color:var(--text-muted);font-size:14px;flex-shrink:0;padding:0;line-height:1">✕</button>
+        </div>
+      </div>
+      <!-- Formatting toolbar -->
+      <div style="display:flex;gap:3px;padding:6px 10px 0;flex-wrap:wrap;align-items:center">
+        <button onclick="fmtText('bold')" title="Negrito (Ctrl+B)" style="font-size:12px;font-weight:700;min-width:26px;height:24px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer;color:var(--text-primary)">B</button>
+        <button onclick="fmtText('italic')" title="Itálico (Ctrl+I)" style="font-size:12px;font-style:italic;min-width:26px;height:24px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer;color:var(--text-primary)">I</button>
+        <button onclick="fmtText('underline')" title="Sublinhado (Ctrl+U)" style="font-size:12px;text-decoration:underline;min-width:26px;height:24px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer;color:var(--text-primary)">U</button>
+        <button onclick="fmtText('strike')" title="Riscado" style="font-size:12px;text-decoration:line-through;min-width:26px;height:24px;padding:0 6px;border-radius:5px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer;color:var(--text-primary)">S</button>
+        <div style="width:1px;background:var(--border);height:18px;margin:0 3px"></div>
+        <button onclick="fmtText('ul')" title="Lista com marcadores" style="font-size:10.5px;height:24px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer;color:var(--text-primary)">• Lista</button>
+        <button onclick="fmtText('ol')" title="Lista numerada" style="font-size:10.5px;height:24px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer;color:var(--text-primary)">1. Lista</button>
+        <div style="width:1px;background:var(--border);height:18px;margin:0 3px"></div>
+        <button onclick="fmtText('code')" title="Código inline" style="font-size:10px;height:24px;padding:0 7px;border-radius:5px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer;color:var(--text-primary);font-family:var(--mono)">&lt;/&gt;</button>
+      </div>
+      <textarea class="compose-textarea" id="compose-input" placeholder="Escreva uma atualização... (Ctrl+Enter para enviar)" oninput="onComposeInput(this)" onkeydown="onComposeKeydown(event)"></textarea>
+      <!-- Attached files preview -->
+      <div id="compose-attachments" style="display:none;padding:6px 10px;border-top:1px solid var(--border);display:flex;flex-wrap:wrap;gap:6px"></div>
+      <div class="compose-footer" style="flex-wrap:wrap;gap:6px">
+        <label title="Anexar arquivo" style="cursor:pointer;display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-base)">
+          📎 Arquivo
+          <input type="file" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.csv" style="display:none" onchange="attachFiles(this)">
+        </label>
+        <button title="Mencionar alguém" style="font-size:11px;color:var(--text-muted);padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer" onclick="insertMention()">@ Mencionar</button>
+        <button title="Agendar publicação" style="font-size:11px;color:var(--text-muted);padding:4px 8px;border-radius:6px;border:1px solid var(--border);background:var(--bg-base);cursor:pointer" onclick="openSchedulePicker()">🕐 Agendar</button>
+        <div id="schedule-badge" style="display:none;font-size:10px;background:rgba(244,196,48,.15);color:var(--yellow);border-radius:6px;padding:3px 8px;cursor:pointer" onclick="cancelSchedule()">⏰ <span id="schedule-label"></span> ✕</div>
+        <span class="compose-hint" style="margin-left:auto">Ctrl+Enter</span>
+        <button class="btn btn-ghost" style="padding:5px 12px;font-size:11px" onclick="addChecklistItem()">+ Checklist</button>
+        <button class="btn btn-primary" style="padding:5px 14px;font-size:11.5px" onclick="postUpdate()">Atualizar</button>
+      </div>
+    </div>
+  </div>
+  <!-- Schedule picker modal (inside panel) -->
+  <div id="schedule-picker" style="display:none;position:absolute;bottom:80px;left:12px;right:12px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:14px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:300">
+    <div style="font-size:12px;font-weight:600;margin-bottom:10px">🕐 Agendar publicação</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn btn-ghost" style="text-align:left;font-size:12px" onclick="setScheduleQuick('tomorrow')">Amanhã às 09:00</button>
+      <button class="btn btn-ghost" style="text-align:left;font-size:12px" onclick="setScheduleQuick('nextweek')">Próxima semana às 09:00</button>
+      <div style="border-top:1px solid var(--border);padding-top:8px">
+        <label style="font-size:11px;color:var(--text-muted)">Data e hora personalizadas</label>
+        <input type="datetime-local" id="schedule-datetime" style="width:100%;margin-top:4px;background:var(--bg-base);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:5px 8px;outline:none">
+        <button class="btn btn-primary" style="width:100%;margin-top:8px;font-size:12px" onclick="setScheduleCustom()">Confirmar horário</button>
+      </div>
+      <button class="btn btn-ghost" style="font-size:11px" onclick="document.getElementById('schedule-picker').style.display='none'">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- LINK QUICK MODAL -->
+<div id="link-modal" class="link-modal" style="display:none">
+  <div style="font-size:12px;font-weight:600;margin-bottom:10px;color:var(--text-primary)">🔗 Adicionar link</div>
+  <input id="lm-label" type="text" placeholder="Nome do link (ex: LP Inovar)">
+  <input id="lm-url" type="url" placeholder="URL (ex: https://...)">
+  <div style="display:flex;gap:6px;justify-content:flex-end">
+    <button class="btn btn-ghost" style="padding:5px 12px;font-size:11px" onclick="closeLinkModal()">Cancelar</button>
+    <button class="btn btn-primary" style="padding:5px 12px;font-size:11px" onclick="saveLinkModal()">Salvar</button>
+  </div>
+</div>
+
+<!-- MODAL TEAM MANAGEMENT -->
+<!-- MODAL GOOGLE DRIVE -->
+<div class="modal-overlay" id="modal-drive">
+  <div class="modal" style="max-width:660px;width:660px">
+    <div class="modal-header">
+      <div class="modal-title">📁 Google Drive</div>
+      <button class="modal-close" onclick="closeDrivePanel()">✕</button>
+    </div>
+    <div id="drive-panel-content" style="min-height:200px;padding:4px 0 8px"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-team">
+  <div class="modal" style="width:540px;max-width:97vw">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Gerenciar Equipe</div>
+      <button class="modal-close" onclick="closeTeamModal()">✕</button>
+    </div>
+    <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px">Membros com board próprio no CRM. Clique em ✏️ para renomear.</div>
+    <div id="team-members-list"></div>
+
+    <!-- Formulário de novo membro -->
+    <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">+ Novo membro / board</div>
+      <div class="form-grid" style="gap:10px">
+        <div class="form-row" style="margin:0">
+          <label>Nome</label>
+          <input id="nm-name" type="text" placeholder="ex: Francine, Comercial, Design…">
+        </div>
+        <div class="form-row" style="margin:0">
+          <label>Função</label>
+          <input id="nm-role" type="text" placeholder="ex: Designer, Tráfego, Social Media">
+        </div>
+        <div class="form-row" style="margin:0">
+          <label>Ícone</label>
+          <select id="nm-icon">
+            <option value="👤">👤 Pessoa</option>
+            <option value="⚙️">⚙️ Squad / Operacional</option>
+            <option value="🎨">🎨 Design / Criação</option>
+            <option value="📊">📊 Analytics / Dados</option>
+            <option value="💼">💼 Comercial / Vendas</option>
+            <option value="📱">📱 Social Media</option>
+            <option value="🎯">🎯 Tráfego Pago</option>
+            <option value="📝">📝 Conteúdo / Copy</option>
+            <option value="🌐">🌐 Sites / SEO</option>
+            <option value="📸">📸 Fotografia / Vídeo</option>
+            <option value="🤝">🤝 Parceiro</option>
+            <option value="🏢">🏢 Empresa / Equipe</option>
+          </select>
+        </div>
+        <div class="form-row form-full" style="margin:0">
+          <label>Grupos iniciais do board</label>
+          <div id="nm-groups-list" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div>
+          <button onclick="_nmAddGroup()" style="background:none;border:1px dashed var(--border);color:var(--accent);border-radius:7px;padding:5px 12px;font-size:11.5px;cursor:pointer;margin-top:6px;width:100%">+ Adicionar grupo</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:12px;font-size:12px" onclick="addTeamMember()">Criar board</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeTeamModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USERS MANAGEMENT (Admin only) -->
+<div class="modal-overlay" id="modal-users">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <div class="modal-title">👥 Gerenciar Usuários</div>
+      <button class="modal-close" onclick="closeUsersModal()">✕</button>
+    </div>
+    <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:16px">
+      Gerencie os cargos de cada pessoa. O primeiro a entrar vira Admin automaticamente.
+    </div>
+    <div style="background:var(--bg-card2);border-radius:10px;padding:12px;margin-bottom:16px;font-size:11.5px;color:var(--text-secondary)">
+      <strong style="color:var(--accent)">👑 Admin</strong> — acessa tudo, gerencia equipe e usuários<br>
+      <strong style="color:var(--yellow)">⭐ Gerente</strong> — vê Financeiro, mas não gerencia usuários<br>
+      <strong style="color:var(--blue)">👤 Membro</strong> — só CRM e Clientes, sem deletar, sem Financeiro
+    </div>
+    <div style="background:var(--bg-card2);border-radius:10px;padding:12px;margin-bottom:16px">
+      <div style="font-size:12px;font-weight:600;color:var(--text-primary);margin-bottom:8px">➕ Pré-cadastrar usuário por e-mail</div>
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <input id="precad-email" type="email" placeholder="email@gmail.com" style="flex:1;background:var(--bg-base);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text-primary);font-family:var(--font);font-size:12px;outline:none">
+        <select id="precad-role" style="background:var(--bg-base);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:6px 8px;cursor:pointer">
+          <option value="admin">👑 Admin</option>
+          <option value="gerente">⭐ Gerente</option>
+          <option value="membro" selected>👤 Membro</option>
+        </select>
+        <button class="btn btn-primary" style="font-size:12px;padding:6px 14px" onclick="preCadastrarUsuario()">Adicionar</button>
+      </div>
+      <div id="precad-list" style="font-size:11.5px;color:var(--text-muted)"></div>
+    </div>
+    <div id="users-list-container">
+      <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">Carregando usuários...</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeUsersModal()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL NOVO GRUPO -->
+<div class="modal-overlay" id="modal-group">
+  <div class="modal" style="width:400px">
+    <div class="modal-header">
+      <div class="modal-title">Novo Grupo</div>
+      <button class="modal-close" onclick="closeGroupModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-row">
+        <label>Nome do grupo</label>
+        <input id="ng-name" type="text" placeholder="ex: Clientes Mensais | Google ADS">
+      </div>
+      <div class="form-row">
+        <label>Cor do grupo</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+          <div class="color-swatch active" data-color="#7c5cfc" style="background:#7c5cfc" onclick="selectGroupColor('#7c5cfc',this)"></div>
+          <div class="color-swatch" data-color="#2dce89" style="background:#2dce89" onclick="selectGroupColor('#2dce89',this)"></div>
+          <div class="color-swatch" data-color="#38b6ff" style="background:#38b6ff" onclick="selectGroupColor('#38b6ff',this)"></div>
+          <div class="color-swatch" data-color="#f4c430" style="background:#f4c430" onclick="selectGroupColor('#f4c430',this)"></div>
+          <div class="color-swatch" data-color="#fb6340" style="background:#fb6340" onclick="selectGroupColor('#fb6340',this)"></div>
+          <div class="color-swatch" data-color="#f5365c" style="background:#f5365c" onclick="selectGroupColor('#f5365c',this)"></div>
+          <div class="color-swatch" data-color="#2dce89" style="background:#00d4aa" onclick="selectGroupColor('#00d4aa',this)"></div>
+          <div class="color-swatch" data-color="#ff6ec7" style="background:#ff6ec7" onclick="selectGroupColor('#ff6ec7',this)"></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+          <label style="font-size:11px;color:var(--text-muted);margin:0">Personalizada:</label>
+          <input type="color" id="ng-color-custom" value="#7c5cfc"
+            oninput="selectGroupColor(this.value, null, true)"
+            style="width:36px;height:36px;border:2px solid var(--border);border-radius:8px;cursor:pointer;background:none;padding:2px">
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeGroupModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNewGroup()">Criar grupo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ITEM -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Novo item</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <!-- DESTINO DA TAREFA (só aparece em novo item) -->
+      <div class="form-full form-row" id="f-dest-row">
+        <label>📍 Destinar para</label>
+        <div style="display:flex;gap:8px">
+          <select id="f-dest-board" onchange="populateModalGroups()" style="flex:1;background:var(--bg-base);border:1px solid var(--border-bright);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none">
+          </select>
+          <select id="f-dest-group" style="flex:1;background:var(--bg-base);border:1px solid var(--border-bright);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none">
+          </select>
+        </div>
+      </div>
+      <div class="form-full form-row">
+        <label>Nome / Cliente</label>
+        <div class="autocomplete-wrap">
+          <input id="f-name" type="text" placeholder="Nome do cliente ou tarefa" oninput="onModalClientSearch(this.value)" autocomplete="off">
+          <div class="autocomplete-list" id="f-name-ac" style="display:none"></div>
+        </div>
+        <div id="f-client-pulled" style="display:none" class="client-pulled-info">
+          <span>✅</span><span id="f-client-pulled-text"></span>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Tipo</label>
+        <select id="f-type">
+          <option value="tarefa">📌 Tarefa</option>
+          <option value="cliente">👤 Cliente</option>
+        </select>
+      </div>
+      <div class="form-row" style="position:relative">
+        <label>Responsável(is)</label>
+        <div id="f-persons-display" onclick="togglePersonsPicker()" style="border:1px solid var(--border-bright);border-radius:8px;padding:6px 10px;background:var(--bg-base);cursor:pointer;min-height:36px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+          <span id="f-persons-placeholder" style="font-size:12px;color:var(--text-muted)">Selecionar responsáveis...</span>
+        </div>
+        <div id="f-persons-dropdown" style="display:none;position:absolute;top:100%;left:0;right:0;z-index:500;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);padding:8px;margin-top:2px;max-height:220px;overflow-y:auto"></div>
+      </div>
+      <div class="form-row">
+        <label>Status</label>
+        <select id="f-status">
+          <option value="Pendente">Pendente</option>
+          <option value="Em andamento">Em andamento</option>
+          <option value="Feito">Feito</option>
+          <option value="Fazendo">Fazendo</option>
+          <option value="Aguardar docs">Aguardar docs</option>
+          <option value="Aguardando verificação">Aguardando verificação</option>
+          <option value="Parado">Parado</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Recorrência</label>
+        <input id="f-recorrencia" type="text" placeholder="ex: Mensal, 6 meses">
+      </div>
+      <div class="form-row">
+        <label>Verba / Plataforma</label>
+        <input id="f-verba" type="text" placeholder="ex: R$ 1.800 / Meta Ads">
+      </div>
+      <div class="form-row">
+        <label>Início</label>
+        <input id="f-start" type="date">
+      </div>
+      <div class="form-row">
+        <label>Fim</label>
+        <input id="f-end" type="date">
+      </div>
+      <div class="form-row">
+        <label>Temperatura do cliente</label>
+        <select id="f-temp">
+          <option value="">— Selecionar</option>
+          <option value="Quente">🔴 Quente</option>
+          <option value="Morno">🟡 Morno</option>
+          <option value="Frio">🔵 Frio</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Performance</label>
+        <select id="f-perf">
+          <option value="">— Selecionar</option>
+          <option value="Ótima">✅ Ótima</option>
+          <option value="Boa">👍 Boa</option>
+          <option value="Regular">⚠️ Regular</option>
+          <option value="Ruim">❌ Ruim</option>
+        </select>
+      </div>
+      <div class="form-divider"></div>
+      <div class="form-section-label">📁 Pastas do Google Drive</div>
+      <div class="form-full form-row" style="flex-direction:column;gap:8px">
+        <div id="f-drive-folders-chips" style="display:flex;flex-wrap:wrap;gap:6px;min-height:28px"></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button type="button" class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="_itemDrivePickSaved()">📁 Selecionar pasta salva</button>
+          <button type="button" class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="_itemDriveAddNew()">＋ Colar link novo</button>
+        </div>
+        <div id="f-drive-saved-picker" style="display:none;border:1px solid var(--border);border-radius:8px;padding:8px;background:var(--bg-card2);max-height:160px;overflow-y:auto"></div>
+      </div>
+      <div class="form-divider"></div>
+      <div class="form-section-label">🔗 Links Rápidos</div>
+      <div class="form-full form-row">
+        <label>Link principal (URL)</label>
+        <input id="f-link-url" type="url" placeholder="https://...">
+      </div>
+      <div class="form-full form-row">
+        <label>Nome do link</label>
+        <input id="f-link-label" type="text" placeholder="ex: LP Inovar, Drive, Canva...">
+      </div>
+      <div class="form-divider"></div>
+      <div class="form-section-label">📝 Anotações do Cliente</div>
+      <div class="form-full form-row">
+        <label>Anotações / Notas gerais</label>
+        <textarea id="f-notes" placeholder="Informações importantes, observações, histórico..."></textarea>
+      </div>
+      <div class="form-full form-row">
+        <label>Pontos de melhoria</label>
+        <textarea id="f-melhorias" placeholder="O que pode ser melhorado?"></textarea>
+      </div>
+      <div class="form-full form-row">
+        <label>Próximos passos</label>
+        <input id="f-proximos" type="text" placeholder="ex: Enviar relatório, Reunião na quinta...">
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL SUBITEM -->
+<div class="modal-overlay" id="modal-sub">
+  <div class="modal" style="width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-sub-title">Novo Subelemento</div>
+      <button class="modal-close" onclick="closeSubModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div class="form-row">
+        <label>Nome da tarefa / subelemento</label>
+        <input id="fs-name" type="text" placeholder="ex: Pedir e subir conteúdos">
+      </div>
+      <div class="form-row">
+        <label>Status</label>
+        <select id="fs-status">
+          <option value="Pendente">Pendente</option>
+          <option value="Em andamento">Em andamento</option>
+          <option value="Feito">Feito</option>
+          <option value="Fazendo">Fazendo</option>
+          <option value="Aguardar docs">Aguardar docs</option>
+          <option value="Parado">Parado</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Responsável</label>
+        <input id="fs-person" type="text" placeholder="ex: Amanda, Clo...">
+      </div>
+      <div class="form-row">
+        <label>Anotação</label>
+        <textarea id="fs-notes" style="min-height:60px" placeholder="Observações sobre esta tarefa..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeSubModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveSubItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TEMPLATES -->
+<div class="modal-overlay" id="modal-templates">
+  <div class="modal" style="width:560px">
+    <div class="modal-header">
+      <div class="modal-title">📚 Biblioteca de Subelementos</div>
+      <button class="modal-close" onclick="closeTemplatesModal()">✕</button>
+    </div>
+    <div id="tpl-view-list">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px">
+        Selecione um template para aplicar ao item selecionado, ou edite/crie templates abaixo.
+      </div>
+      <div id="templates-list" style="display:flex;flex-direction:column;gap:8px;max-height:360px;overflow-y:auto"></div>
+      <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+        <button class="btn btn-ghost" style="width:100%;font-size:12px" onclick="openCreateTemplate()">+ Criar novo template de subelementos</button>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeTemplatesModal()">Fechar</button>
+      </div>
+    </div>
+    <!-- EDITOR DE TEMPLATE (oculto por padrão) -->
+    <div id="tpl-view-editor" style="display:none">
+      <div style="margin-bottom:14px">
+        <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px">Nome do template</label>
+        <input id="tpl-editor-name" type="text" placeholder='ex: "Google Business — Mensal"' style="width:100%;box-sizing:border-box;background:var(--bg-card2);border:1.5px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
+      </div>
+      <div style="margin-bottom:10px">
+        <label style="font-size:12px;color:var(--text-secondary);display:block;margin-bottom:6px">Subelementos — <span style="color:var(--text-muted)">cada linha vira um item do checklist</span></label>
+        <textarea id="tpl-editor-items" rows="10" placeholder="Otimizar campanhas&#10;Verificar campanhas&#10;Verificar saldo&#10;Enviar relatório" style="width:100%;box-sizing:border-box;background:var(--bg-card2);border:1.5px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text-primary);font-family:var(--font);font-size:12.5px;line-height:1.7;outline:none;resize:vertical"></textarea>
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);margin-bottom:14px" id="tpl-editor-count">0 subelementos</div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="cancelTemplateEditor()">← Voltar</button>
+        <button class="btn btn-primary" onclick="saveTemplateEditor()">💾 Salvar template</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL MEMBER FICHA (ADM only) -->
+<div class="modal-overlay" id="modal-member-ficha">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="mf-modal-title">📋 Ficha do Membro</div>
+      <button class="modal-close" onclick="closeMemberFicha()">✕</button>
+    </div>
+    <div class="member-ficha-tabs">
+      <div class="member-ficha-tab active" onclick="switchFichaTab('geral',this)">👤 Geral</div>
+      <div class="member-ficha-tab" onclick="switchFichaTab('contrato',this)">📄 Contrato</div>
+      <div class="member-ficha-tab" onclick="switchFichaTab('entregas',this)">✅ Entregas</div>
+    </div>
+    <!-- GERAL -->
+    <div class="member-ficha-panel active" id="mf-panel-geral">
+      <div class="form-grid">
+        <div class="form-row"><label>Nome completo</label><input id="mf-nome" type="text" placeholder="Nome"></div>
+        <div class="form-row"><label>Função / Cargo</label><input id="mf-funcao" type="text" placeholder="ex: Gestor de Tráfego"></div>
+        <div class="form-row"><label>E-mail</label><input id="mf-email" type="email" placeholder="email@exemplo.com"></div>
+        <div class="form-row"><label>WhatsApp</label><input id="mf-whatsapp" type="text" placeholder="(48) 99999-9999"></div>
+        <div class="form-row"><label>Instagram / LinkedIn</label><input id="mf-social" type="text" placeholder="@usuario ou URL"></div>
+        <div class="form-row"><label>Data de início</label><input id="mf-inicio" type="date"></div>
+        <div class="form-full form-row"><label>Observações gerais</label><textarea id="mf-obs" placeholder="Informações relevantes sobre o membro..."></textarea></div>
+      </div>
+    </div>
+    <!-- CONTRATO -->
+    <div class="member-ficha-panel" id="mf-panel-contrato">
+      <div class="form-grid">
+        <div class="form-row"><label>Tipo de contrato</label>
+          <select id="mf-tipo-contrato">
+            <option value="CLT">CLT</option>
+            <option value="PJ Fixo">PJ Fixo</option>
+            <option value="PJ Variável">PJ Variável</option>
+            <option value="Freelancer">Freelancer</option>
+            <option value="Estágio">Estágio</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Valor pago (R$)</label><input id="mf-valor" type="text" placeholder="ex: R$ 2.000,00"></div>
+        <div class="form-row"><label>Dia de pagamento</label><input id="mf-dia-pag" type="number" min="1" max="31" placeholder="ex: 5"></div>
+        <div class="form-row"><label>Status</label>
+          <select id="mf-status">
+            <option value="Ativo">Ativo</option>
+            <option value="Férias">Férias</option>
+            <option value="Afastado">Afastado</option>
+            <option value="Inativo">Inativo</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Início do contrato</label><input id="mf-contrato-inicio" type="date"></div>
+        <div class="form-row"><label>Fim do contrato</label><input id="mf-contrato-fim" type="date"></div>
+        <div class="form-full form-row"><label>Link do contrato (Drive)</label><input id="mf-link-contrato" type="url" placeholder="https://drive.google.com/..."></div>
+        <div class="form-full form-row"><label>Notas sobre o contrato</label><textarea id="mf-notas-contrato" placeholder="Cláusulas especiais, condições, histórico de ajustes..."></textarea></div>
+      </div>
+    </div>
+    <!-- ENTREGAS -->
+    <div class="member-ficha-panel" id="mf-panel-entregas">
+      <div class="form-grid">
+        <div class="form-full form-row"><label>O que ele entrega</label><textarea id="mf-entregas" rows="3" placeholder="Descreva as principais entregas e responsabilidades..."></textarea></div>
+        <div class="form-full form-row"><label>Ferramentas que usa</label><input id="mf-ferramentas" type="text" placeholder="ex: Meta Ads, Google Ads, Canva, Notion..."></div>
+        <div class="form-full form-row"><label>Pontos fortes</label><textarea id="mf-pontos-fortes" rows="2" placeholder="Habilidades e qualidades que se destacam..."></textarea></div>
+        <div class="form-full form-row"><label>Pontos de melhoria</label><textarea id="mf-pontos-melhoria" rows="2" placeholder="Áreas para desenvolvimento..."></textarea></div>
+        <div class="form-full form-row"><label>Avaliação interna</label>
+          <select id="mf-avaliacao">
+            <option value="">— Não avaliado</option>
+            <option value="Excelente">⭐ Excelente</option>
+            <option value="Ótimo">✅ Ótimo</option>
+            <option value="Bom">👍 Bom</option>
+            <option value="Regular">⚠️ Regular</option>
+            <option value="Abaixo">❌ Abaixo do esperado</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeMemberFicha()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveMemberFicha()">💾 Salvar ficha</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PROSPECÇÃO — novo lead -->
+<div class="modal-overlay" id="modal-prosp-lead">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title" id="prosp-lead-title">+ Novo Lead</div>
+      <button class="modal-close" onclick="closePrspModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Nome / Empresa</label><input id="pl-nome" type="text" placeholder="Nome do lead ou empresa"></div>
+      <div class="form-row"><label>WhatsApp</label><input id="pl-whatsapp" type="tel" placeholder="(00) 00000-0000"></div>
+      <div class="form-row"><label>Canal de abordagem</label>
+        <select id="pl-canal">
+          <option value="Instagram">Instagram</option>
+          <option value="WhatsApp">WhatsApp</option>
+          <option value="LinkedIn">LinkedIn</option>
+          <option value="Indicação">Indicação</option>
+          <option value="Site">Site</option>
+          <option value="Cold Call">Cold Call</option>
+          <option value="Outro">Outro</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Data de abordagem</label><input id="pl-data" type="date"></div>
+      <div class="form-row"><label>Status</label>
+        <select id="pl-status">
+          <option value="Abordado">Abordado</option>
+          <option value="Respondeu">Respondeu</option>
+          <option value="Agendou">Agendou reunião</option>
+          <option value="Ignorou">Ignorou</option>
+          <option value="Não quis">Não quis</option>
+          <option value="Qualificado">✅ Qualificado</option>
+        </select>
+      </div>
+      <div class="form-row"><label>Segmento / Nicho</label><input id="pl-nicho" type="text" placeholder="ex: Clínica, E-commerce, Consultório"></div>
+      <div class="form-row"><label>Responsável pela abordagem</label><input id="pl-responsavel" type="text" placeholder="ex: Amanda"></div>
+      <div class="form-row"><label>Follow-up agendado</label><input id="pl-followup" type="date" title="Data para fazer o próximo contato"></div>
+      <div class="form-row"><label>Score Google ⭐</label>
+        <select id="pl-score-google">
+          <option value="">— Não avaliado</option>
+          <option value="5.0">⭐ 5.0 - Excelente</option>
+          <option value="4.5">⭐ 4.5</option>
+          <option value="4.0">⭐ 4.0 - Bom</option>
+          <option value="3.5">⭐ 3.5</option>
+          <option value="3.0">⭐ 3.0 - Regular</option>
+          <option value="<3.0">⭐ Abaixo de 3.0</option>
+        </select>
+      </div>
+      <div class="form-row"><label>🗺️ Link Google Maps</label><input id="pl-maps-link" type="url" placeholder="https://maps.google.com/..."></div>
+      <div class="form-full form-row">
+        <label>📲 Redes Sociais</label>
+        <div id="pl-social-rows" style="display:flex;flex-direction:column;gap:6px;margin-top:4px">
+          <div style="display:flex;gap:6px;align-items:center">
+            <select style="background:var(--bg-base);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:5px 8px;outline:none;width:120px" class="pl-social-net">
+              <option value="Instagram">Instagram</option>
+              <option value="Facebook">Facebook</option>
+              <option value="LinkedIn">LinkedIn</option>
+              <option value="TikTok">TikTok</option>
+              <option value="YouTube">YouTube</option>
+              <option value="Site">Site</option>
+            </select>
+            <input type="url" placeholder="https://..." class="pl-social-url" style="flex:1;background:var(--bg-base);border:1px solid var(--border);border-radius:6px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:5px 8px;outline:none">
+            <button class="icon-btn" onclick="addPrspSocialRow()" title="Adicionar rede">➕</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-full form-row"><label>Observação</label><textarea id="pl-obs" placeholder="O que foi dito, resposta recebida, contexto..."></textarea></div>
+      <div class="form-full form-row">
+        <label>📝 Anotações personalizadas</label>
+        <textarea id="pl-notas" rows="3" placeholder="Informações extras, perfil do lead, interesses, pontos importantes..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closePrspModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="savePrspLead()">Salvar lead</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal-overlay" id="modal-empresa">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-modal-title">Novo Gasto</div>
+      <button class="modal-close" onclick="closeEmpresaModal()">✕</button>
+    </div>
+
+    <!-- FORM DESPESA -->
+    <div id="emp-form-despesa">
+      <div class="form-grid">
+        <div class="form-full form-row"><label>Nome da plataforma / serviço</label><input id="emp-nome" type="text" placeholder="ex: Google Workspace, Netlify, RD Station"></div>
+        <div class="form-row"><label>Categoria</label><input id="emp-categoria" type="text" placeholder="ex: Ferramenta, Assinatura, Infraestrutura"></div>
+        <div class="form-row"><label>Tipo</label>
+          <select id="emp-tipo">
+            <option value="fixo">Fixo (todo mês)</option>
+            <option value="variavel">Variável</option>
+            <option value="outro">Outro</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Valor mensal (R$)</label><input id="emp-valor" type="text" placeholder="ex: R$ 150,00"></div>
+        <div class="form-row"><label>Dia de vencimento</label><input id="emp-venc" type="number" min="1" max="31" placeholder="ex: 5"></div>
+        <div class="form-full form-row"><label>Notas</label><textarea id="emp-notas" placeholder="Detalhes, link do plano, observações..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- FORM EQUIPE -->
+    <div id="emp-form-equipe" style="display:none">
+      <div class="form-grid">
+        <div class="form-row"><label>Nome completo</label><input id="emp-eq-nome" type="text" placeholder="Nome do colaborador"></div>
+        <div class="form-row"><label>E-mail</label><input id="emp-eq-email" type="email" placeholder="email@exemplo.com"></div>
+        <div class="form-row"><label>Função / Cargo</label><input id="emp-eq-funcao" type="text" placeholder="ex: Gestor de Tráfego, Designer"></div>
+        <div class="form-row"><label>Tipo de contrato</label>
+          <select id="emp-eq-contrato">
+            <option value="salario">CLT / Salário</option>
+            <option value="salario">PJ Fixo</option>
+            <option value="variavel">PJ Variável</option>
+            <option value="outro">Freelancer / Outro</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Valor pago (R$)</label><input id="emp-eq-valor" type="text" placeholder="ex: R$ 2.000,00"></div>
+        <div class="form-row"><label>Dia de pagamento</label><input id="emp-eq-venc" type="number" min="1" max="31" placeholder="ex: 5"></div>
+        <div class="form-row"><label>Status</label>
+          <select id="emp-eq-status">
+            <option value="Ativo">Ativo</option>
+            <option value="Férias">Férias</option>
+            <option value="Inativo">Inativo</option>
+          </select>
+        </div>
+        <div class="form-full form-row"><label>O que entrega / responsabilidades</label><textarea id="emp-eq-entrega" placeholder="Descreva as entregas e responsabilidades desse membro..."></textarea></div>
+        <div class="form-full form-row"><label>Notas internas</label><textarea id="emp-eq-notas" placeholder="Observações sobre contrato, avaliações, etc."></textarea></div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeEmpresaModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEmpresaItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL FINANCEIRO -->
+<div class="modal-overlay" id="modal-fin">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-fin-title">Novo Contrato</div>
+      <button class="modal-close" onclick="closeFinModal()">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="form-full form-row">
+        <label>Cliente</label>
+        <input id="ff-client" type="text" placeholder="Nome do cliente">
+      </div>
+      <div class="form-full form-row">
+        <label>Serviço / Produto</label>
+        <input id="ff-service" type="text" placeholder="ex: Gestão de Tráfego Meta + Google">
+      </div>
+      <div class="form-row">
+        <label>Valor Mensal (R$)</label>
+        <input id="ff-valor" type="text" placeholder="ex: 1800">
+      </div>
+      <div class="form-row">
+        <label>Dia de vencimento</label>
+        <input id="ff-venc" type="number" min="1" max="31" placeholder="ex: 10">
+      </div>
+      <div class="form-row">
+        <label>Início do contrato</label>
+        <input id="ff-start" type="date">
+      </div>
+      <div class="form-row">
+        <label>Fim do contrato</label>
+        <input id="ff-end" type="date">
+      </div>
+      <div class="form-row">
+        <label>Status de pagamento</label>
+        <select id="ff-paystatus">
+          <option value="Pendente">Pendente</option>
+          <option value="Pago">Pago</option>
+          <option value="Atrasado">Atrasado</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Tipo de contrato</label>
+        <select id="ff-tipo">
+          <option value="Mensal">Mensal</option>
+          <option value="Trimestral">Trimestral</option>
+          <option value="Semestral">Semestral</option>
+          <option value="Anual">Anual</option>
+          <option value="Avulso">Avulso</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>💰 Verba de Campanha (R$)</label>
+        <input id="ff-verba-campanha" type="text" placeholder="ex: 3000 (limite acordado em contrato)">
+      </div>
+      <div class="form-row">
+        <label>Tipo de lançamento</label>
+        <select id="ff-lancamento-tipo">
+          <option value="contrato">📄 Contrato recorrente</option>
+          <option value="cobranca">💳 Cobrança em aberto</option>
+          <option value="avulso">🧾 Serviço avulso vendido</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Classificação</label>
+        <select id="ff-classificacao" onchange="_toggleFinClassif()">
+          <option value="empresa">🏢 Empresa (receita compartilhada)</option>
+          <option value="pessoal">👤 Pessoal (Amanda recebe tudo)</option>
+        </select>
+      </div>
+      <div class="form-row" id="ff-valor-pessoal-row" style="display:none">
+        <label>Valor pessoal Amanda (R$)</label>
+        <input id="ff-valor-pessoal" type="text" placeholder="Valor que Amanda fica (pode ser igual ao total)">
+      </div>
+      <div class="form-full form-row">
+        <label>Observações do contrato</label>
+        <textarea id="ff-notes" placeholder="Link do contrato, condições especiais..."></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeFinModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveFinItem()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     CLIENT REGISTRATION MODAL (multi-step)
+═══════════════════════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-client-reg">
+  <div class="modal client-modal">
+    <div class="modal-header">
+      <div class="modal-title" id="client-reg-title">➕ Novo Cliente</div>
+      <button class="modal-close" onclick="closeClientReg()">✕</button>
+    </div>
+
+    <!-- STEP INDICATORS -->
+    <div class="client-steps" id="client-steps-bar">
+      <div class="client-step active" id="cstep-1"><div class="client-step-dot">1</div><br>Responsável</div>
+      <div class="client-step" id="cstep-2"><div class="client-step-dot">2</div><br>Empresa</div>
+      <div class="client-step" id="cstep-3"><div class="client-step-dot">3</div><br>Redes Sociais</div>
+      <div class="client-step" id="cstep-4"><div class="client-step-dot">4</div><br>Acessos</div>
+      <div class="client-step" id="cstep-5"><div class="client-step-dot">5</div><br>Serviços</div>
+      <div class="client-step" id="cstep-6"><div class="client-step-dot">6</div><br>Financeiro</div>
+      <div class="client-step" id="cstep-7"><div class="client-step-dot">7</div><br>Briefing</div>
+      <div class="client-step" id="cstep-8"><div class="client-step-dot">8</div><br>Equipe</div>
+    </div>
+
+    <!-- STEP 1: RESPONSÁVEL -->
+    <div class="step-panel active" id="spanel-1">
+      <div class="step-section-title">🧑‍💼 Dados do Responsável</div>
+      <div class="form-grid">
+      <div class="form-row form-full"><label>Nome completo</label>
+        <div class="autocomplete-wrap">
+          <input id="c-nome" type="text" placeholder="Nome completo do cliente" oninput="onClientRegSearch(this.value)" autocomplete="off">
+          <div class="autocomplete-list" id="c-nome-ac" style="display:none"></div>
+        </div>
+        <div id="c-nome-pulled" class="client-pulled-info" style="display:none;margin-top:6px"><span>✅</span><span id="c-nome-pulled-text">Dados puxados do financeiro</span></div>
+      </div>
+        <div class="form-row"><label>CPF</label><div class="sensitive-field"><input id="c-cpf" type="text" placeholder="000.000.000-00"><button class="sensitive-toggle" onclick="toggleSensitive('c-cpf',this)" tabindex="-1">👁</button></div></div>
+        <div class="form-row"><label>Data de nascimento</label><input id="c-nasc" type="date"></div>
+        <div class="form-row"><label>Cargo na empresa</label><input id="c-cargo" type="text" placeholder="ex: CEO, Diretor..."></div>
+        <div class="form-row"><label>E-mail principal</label><input id="c-email" type="email" placeholder="email@exemplo.com"></div>
+        <div class="form-row"><label>Telefone / WhatsApp</label><input id="c-tel" type="tel" placeholder="(00) 00000-0000"></div>
+        <div class="form-row"><label>Telefone secundário</label><input id="c-tel2" type="tel" placeholder="(00) 00000-0000"></div>
+        <div class="form-row"><label>Melhor horário para contato</label><input id="c-horario" type="text" placeholder="ex: Seg-Sex, 9h-18h"></div>
+        <div class="form-row form-full"><label>Preferência de comunicação</label>
+          <select id="c-pref-com"><option>WhatsApp</option><option>Ligação</option><option>E-mail</option></select></div>
+        <div class="form-row form-full"><label>🌡️ Temperatura</label>
+          <select id="c-temp"><option value="">—</option><option value="Quente">🔴 Quente</option><option value="Morno">🟡 Morno</option><option value="Frio">🔵 Frio</option></select></div>
+        <div class="form-row form-full"><label>Status do cliente</label>
+          <select id="c-status-cli"><option value="Lead">Lead</option><option value="Em negociação">Em negociação</option><option value="Ativo">Ativo</option><option value="Pausado">Pausado</option><option value="Encerrado">Encerrado</option></select></div>
+        <div class="form-row form-full"><label>Origem do cliente</label><input id="c-origem" type="text" placeholder="ex: Indicação, Instagram..."></div>
+        <div class="form-row form-full"><label>Observações sobre o relacionamento</label><textarea id="c-obs-rel" placeholder="Notas sobre o perfil do cliente..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- STEP 2: EMPRESA -->
+    <div class="step-panel" id="spanel-2">
+      <div class="step-section-title">🏢 Dados da Empresa</div>
+      <div class="form-grid">
+        <div class="form-row form-full"><label>Nome da empresa</label><input id="c-empresa" type="text" placeholder="Razão social"></div>
+        <div class="form-row"><label>Nome fantasia</label><input id="c-fantasia" type="text"></div>
+        <div class="form-row"><label>CNPJ</label><div class="sensitive-field"><input id="c-cnpj" type="text" placeholder="00.000.000/0000-00"><button class="sensitive-toggle" onclick="toggleSensitive('c-cnpj',this)" tabindex="-1">👁</button></div></div>
+        <div class="form-row"><label>Inscrição estadual</label><input id="c-ie" type="text"></div>
+        <div class="form-row"><label>Data de abertura</label><input id="c-dt-abertura" type="date"></div>
+        <div class="form-row"><label>Site oficial</label><input id="c-site" type="url" placeholder="https://..."></div>
+        <div class="form-row"><label>E-mail empresarial</label><input id="c-email-emp" type="email"></div>
+        <div class="form-row"><label>Telefone comercial</label><input id="c-tel-emp" type="tel"></div>
+        <div class="form-row form-full"><label>Endereço completo</label><input id="c-end" type="text"></div>
+        <div class="form-row"><label>Cidade</label><input id="c-cidade" type="text"></div>
+        <div class="form-row"><label>Estado</label><input id="c-estado" type="text"></div>
+        <div class="form-row"><label>CEP</label><input id="c-cep" type="text"></div>
+      </div>
+      <div class="step-section-title">📊 Informações do Negócio</div>
+      <div class="form-grid">
+        <div class="form-row"><label>Segmento / Nicho</label><input id="c-segmento" type="text"></div>
+        <div class="form-row"><label>Categoria principal</label><input id="c-categoria" type="text"></div>
+        <div class="form-row form-full"><label>Principais serviços / produtos</label><textarea id="c-servicos-emp" rows="2"></textarea></div>
+        <div class="form-row"><label>Ticket médio</label><input id="c-ticket" type="text" placeholder="R$ 0,00"></div>
+        <div class="form-row"><label>Região de atuação</label><input id="c-regiao" type="text"></div>
+        <div class="form-row form-full"><label>Público-alvo</label><textarea id="c-publico" rows="2"></textarea></div>
+        <div class="form-row form-full"><label>Diferencial da empresa</label><textarea id="c-diferencial" rows="2"></textarea></div>
+        <div class="form-row form-full"><label>Principais concorrentes</label><input id="c-concorrentes" type="text"></div>
+        <div class="form-row form-full"><label>Modelo de atuação</label>
+          <select id="c-modelo"><option>Física</option><option>Online</option><option>Híbrida</option></select></div>
+      </div>
+    </div>
+
+    <!-- STEP 3: REDES SOCIAIS -->
+    <div class="step-panel" id="spanel-3">
+      <div class="step-section-title">📱 Redes Sociais e Presença Digital</div>
+      <div id="social-rows-container"></div>
+      <button class="btn-add-social" onclick="addSocialRow()">+ Adicionar rede social</button>
+    </div>
+
+    <!-- STEP 4: ACESSOS -->
+    <div class="step-panel" id="spanel-4">
+      <div class="step-section-title">🔐 Acessos e Contas Importantes</div>
+      <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px">🔒 Campos sensíveis — passe o mouse para revelar</div>
+      <div class="form-grid">
+        <div class="form-row"><label>Google (Gmail principal)</label><div class="sensitive-field"><input id="c-gmail" type="text"><button class="sensitive-toggle" onclick="toggleSensitive('c-gmail',this)" tabindex="-1">👁</button></div></div>
+        <div class="form-row"><label>Senha Google</label><div class="sensitive-field"><input id="c-gmail-senha" type="password"><button class="sensitive-toggle" onclick="toggleSensitive('c-gmail-senha',this)" tabindex="-1">👁</button></div></div>
+        <div class="form-row"><label>Google Meu Negócio</label><input id="c-gmn" type="text"></div>
+        <div class="form-row"><label>Gerenciador Meta Ads</label><input id="c-meta-ads" type="text"></div>
+        <div class="form-row"><label>Conta Google Ads</label><input id="c-gads" type="text"></div>
+        <div class="form-row"><label>Plataforma do site</label><input id="c-plat-site" type="text" placeholder="WordPress, Wix..."></div>
+        <div class="form-row"><label>Login do site</label><div class="sensitive-field"><input id="c-site-login" type="text"><button class="sensitive-toggle" onclick="toggleSensitive('c-site-login',this)" tabindex="-1">👁</button></div></div>
+        <div class="form-row"><label>Senha do site</label><div class="sensitive-field"><input id="c-site-senha" type="password"><button class="sensitive-toggle" onclick="toggleSensitive('c-site-senha',this)" tabindex="-1">👁</button></div></div>
+        <div class="form-row form-full"><label>Plataforma de automação</label><input id="c-automacao" type="text"></div>
+        <div class="form-row form-full"><label>Outros acessos relevantes</label><textarea id="c-outros-acessos" rows="3" placeholder="Descreva outros acessos importantes..."></textarea></div>
+      </div>
+    </div>
+
+    <!-- STEP 5: SERVIÇOS -->
+    <div class="step-panel" id="spanel-5">
+      <div class="step-section-title">📦 Serviços Contratados</div>
+      <div class="form-grid">
+        <div class="form-row form-full"><label>Tipo de plano</label>
+          <select id="c-plano"><option>Completo</option><option>Intermediário</option><option>Básico</option><option>Personalizado</option></select></div>
+        <div class="form-row form-full"><label>Serviços incluídos</label>
+          <div id="svc-check-container" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;background:var(--bg-card2);border-radius:8px;border:1px solid var(--border)">
+            <div style="grid-column:1/-1;display:flex;gap:6px;align-items:center"><label style="font-size:12px;white-space:nowrap">Outro:</label><input id="c-svc-outro" type="text" style="flex:1;background:var(--bg-base);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text-primary);font-family:var(--font);font-size:12px;outline:none"></div>
+          </div>
+        </div>
+        <div class="form-row form-full"><label>Detalhamento do que será entregue</label><textarea id="c-entrega" rows="3"></textarea></div>
+        <div class="form-row"><label>Frequência de entrega</label><input id="c-frequencia" type="text" placeholder="ex: Semanal, Mensal"></div>
+        <div class="form-row"><label>Responsáveis pelo projeto</label><input id="c-responsaveis" type="text" placeholder="ex: Amanda, Gabriel"></div>
+      </div>
+      <div class="step-section-title">🧠 Briefing e Estratégia</div>
+      <div class="form-grid">
+        <div class="form-row form-full"><label>Objetivo principal</label><textarea id="c-objetivo" rows="2"></textarea></div>
+        <div class="form-row form-full"><label>Metas</label><textarea id="c-metas" rows="2"></textarea></div>
+        <div class="form-row form-full"><label>Problemas atuais</label><textarea id="c-problemas" rows="2"></textarea></div>
+        <div class="form-row form-full"><label>O que já foi feito antes</label><textarea id="c-historico" rows="2"></textarea></div>
+        <div class="form-row"><label>Tom de comunicação desejado</label><input id="c-tom" type="text" placeholder="ex: Profissional, Descontraído"></div>
+        <div class="form-row"><label>Referências</label><input id="c-refs" type="text"></div>
+        <div class="form-row form-full"><label>Restrições ou preferências</label><textarea id="c-restricoes" rows="2"></textarea></div>
+      </div>
+    </div>
+
+    <!-- STEP 6: FINANCEIRO -->
+    <div class="step-panel" id="spanel-6">
+      <div class="step-section-title">💰 Financeiro</div>
+      <div class="form-grid">
+        <div class="form-row"><label>Valor do contrato</label><input id="c-valor" type="text" placeholder="R$ 0,00"></div>
+        <div class="form-row"><label>Forma de pagamento</label><input id="c-forma-pag" type="text" placeholder="ex: Pix, Boleto, Cartão"></div>
+        <div class="form-row"><label>Dia de pagamento</label><input id="c-dia-pag" type="number" min="1" max="31" placeholder="ex: 10"></div>
+        <div class="form-row"><label>Status do pagamento</label>
+          <select id="c-pay-status"><option>Pendente</option><option>Pago</option><option>Atrasado</option></select></div>
+        <div class="form-row"><label>Tipo de contrato</label>
+          <select id="c-tipo-cont"><option>Mensal</option><option>Projeto</option><option>Pontual</option></select></div>
+        <div class="form-row"><label>Possui renovação automática?</label>
+          <select id="c-renovacao"><option>Não</option><option>Sim</option></select></div>
+        <div class="form-row"><label>Data de início</label><input id="c-inicio" type="date"></div>
+        <div class="form-row"><label>Data de término</label><input id="c-fim" type="date"></div>
+      </div>
+      <div class="step-section-title">📁 Organização Interna</div>
+      <div class="form-grid">
+        <div class="form-row form-full"><label>Link da pasta do cliente (Drive)</label><input id="c-link-pasta" type="url" placeholder="https://drive.google.com/..."></div>
+        <div class="form-row form-full"><label>Link do contrato</label><input id="c-link-contrato" type="url" placeholder="https://..."></div>
+        <div class="form-row form-full"><label>Link do planejamento</label><input id="c-link-plan" type="url" placeholder="https://..."></div>
+        <div class="form-row form-full"><label>Etapa atual do projeto</label><input id="c-etapa" type="text" placeholder="ex: Onboarding, Implementação..."></div>
+      </div>
+    </div>
+
+    <!-- STEP 7: OBSERVAÇÕES -->
+    <div class="step-panel" id="spanel-7">
+      <div class="step-section-title">📝 Observações Gerais</div>
+      <div class="form-row" style="margin-bottom:16px"><label>Campo livre para informações adicionais</label><textarea id="c-obs" rows="5" placeholder="Qualquer informação adicional sobre o cliente..."></textarea></div>
+      <div class="step-section-title">✅ Checklist de Onboarding</div>
+      <div id="onb-check-container" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:var(--bg-card2);border-radius:10px;border:1px solid var(--border)"></div>
+    </div>
+
+    <!-- STEP 8: EQUIPE -->
+    <div class="step-panel" id="spanel-8">
+      <div class="step-section-title">👥 Adicionar à Equipe</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Selecione as equipes que terão acesso a este cliente. Para cada equipe selecionada, escolha em qual grupo o elemento do cliente vai aparecer.</div>
+      <div class="team-assign-grid" id="team-assign-grid"></div>
+      <div id="group-selects-container"></div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-ghost" id="client-reg-prev" onclick="clientRegPrev()" style="display:none">← Anterior</button>
+      <div style="flex:1"></div>
+      <button class="btn btn-ghost" onclick="closeClientReg()">Cancelar</button>
+      <button class="btn btn-primary" id="client-reg-next" onclick="clientRegNext()">Próximo →</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT DETAIL MODAL -->
+<div class="modal-overlay" id="modal-client-detail">
+  <div class="modal client-detail-modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="cd-title">—</div>
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px" id="cd-company">—</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="editClientFromDetail()">✏️ Editar</button>
+        <button class="modal-close" onclick="closeClientDetail()">✕</button>
+      </div>
+    </div>
+    <div class="client-detail-tabs" id="cd-tabs">
+      <div class="client-detail-tab active" onclick="switchDetailTab('geral',this)">📋 Geral</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('empresa',this)">🏢 Empresa</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('redes',this)">📱 Redes</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('acessos',this)">🔐 Acessos</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('servicos',this)">📦 Serviços</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('financeiro',this)">💰 Financeiro</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('briefing',this)">🧠 Briefing</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('jornada360',this)">🚀 Jornada</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('avaliacao',this)">⭐ Avaliação</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('calendario',this)">📅 Calendário</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('alertas',this)">🚨 Alertas</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('notas360',this)">📝 Notas</div>
+    </div>
+    <div id="cd-body"></div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</div><!-- /app -->
+
+<!-- QUICK NOTE FLOATING BUTTON -->
+<button id="quick-note-fab" onclick="openQuickNote()"
+  style="position:fixed;bottom:80px;right:20px;width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#a855f7);border:none;color:#fff;font-size:22px;cursor:pointer;box-shadow:0 6px 20px rgba(124,92,252,.4);z-index:999;display:none;align-items:center;justify-content:center;transition:transform .2s"
+  title="Anotação rápida" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+  ✏️
+</button>
+
+<!-- QUICK NOTE MODAL -->
+<div class="modal-overlay" id="modal-quick-note" style="display:none;z-index:9998" onclick="if(event.target===this)closeQuickNote()">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Nota Rápida</div>
+      <button class="modal-close" onclick="closeQuickNote()">✕</button>
+    </div>
+    <div style="padding:20px;display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Cliente</label>
+        <select id="qn-client" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-card2);color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
+          <option value="">— Selecionar cliente —</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Anotação</label>
+        <textarea id="qn-text" rows="4" placeholder="Escreva sua nota..." style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-card2);color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none;resize:none;box-sizing:border-box"></textarea>
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:8px">Avaliação (opcional)</label>
+        <div id="qn-stars" style="display:flex;gap:4px"></div>
+        <input type="hidden" id="qn-star-val" value="0">
+      </div>
+      <div>
+        <label style="font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:5px">Etiqueta</label>
+        <select id="qn-tag" style="width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;background:var(--bg-card2);color:var(--text-primary);font-family:var(--font);font-size:13px;outline:none">
+          <option value="">— Sem etiqueta —</option>
+          <option value="follow-up">🔄 Follow-up</option>
+          <option value="reuniao">📅 Reunião</option>
+          <option value="cobranca">💳 Cobrança</option>
+          <option value="entrega">📦 Entrega</option>
+          <option value="feedback">💬 Feedback</option>
+          <option value="alerta">🚨 Alerta</option>
+        </select>
+      </div>
+      <button onclick="saveQuickNote()" class="btn btn-primary" style="width:100%;padding:11px">💾 Salvar nota</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app-root -->
+
+<!-- LABELS MODAL -->
+<div class="modal-overlay" id="modal-labels">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title">🏷️ Etiquetas</div>
+      <button class="modal-close" onclick="closeLabelsModal()">✕</button>
+    </div>
+    <div style="padding:16px 20px 20px">
+      <!-- Create new -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;align-items:center">
+        <input id="new-label-name" type="text" placeholder="Nome da etiqueta..." style="flex:1;background:var(--bg-base);border:1px solid var(--border-bright);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:13px;padding:8px 12px;outline:none" onkeydown="if(event.key==='Enter')createLabel()">
+        <input id="new-label-color" type="color" value="#7c5cfc" style="width:38px;height:36px;border:1px solid var(--border);border-radius:8px;cursor:pointer;padding:2px;background:var(--bg-base)">
+        <button class="btn btn-primary" style="font-size:12px;padding:7px 14px;white-space:nowrap" onclick="createLabel()">+ Criar</button>
+      </div>
+      <!-- List -->
+      <div id="labels-list" style="display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FILE VIEWER OVERLAY -->
+<div id="file-viewer-overlay" onclick="closeFileViewer()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;align-items:center;justify-content:center;flex-direction:column">
+  <div onclick="event.stopPropagation()" style="position:relative;max-width:92vw;max-height:94vh;background:var(--bg-card);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,.6)">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0;gap:12px">
+      <span id="fv-title" style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1"></span>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <a id="fv-download" download style="font-size:12px;padding:5px 12px;border-radius:7px;background:var(--bg-base);border:1px solid var(--border);cursor:pointer;text-decoration:none;color:var(--text-main);display:flex;align-items:center;gap:4px">⬇ Baixar</a>
+        <button onclick="closeFileViewer()" style="font-size:16px;width:30px;height:30px;border-radius:7px;background:var(--bg-base);border:1px solid var(--border);cursor:pointer;color:var(--text-main);display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+      </div>
+    </div>
+    <!-- Body -->
+    <div id="fv-body" style="overflow:auto;flex:1;display:flex;align-items:center;justify-content:center;min-height:200px"></div>
+  </div>
+</div>
+
+</body>
+</html>
