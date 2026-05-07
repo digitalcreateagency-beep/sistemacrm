@@ -9534,8 +9534,67 @@ let _ctaAllFormResponses = [];
 function _ctaLoadTpls()    { return JSON.parse(localStorage.getItem('dc_contract_tpls_v2') || '[]'); }
 function _ctaSaveTplsLS(t) { localStorage.setItem('dc_contract_tpls_v2', JSON.stringify(t)); }
 
-let _ctaChatMsgs  = [];
+let _ctaChatMsgs    = [];
 let _ctaChatLoading = false;
+let _ctaCurrentHistId = null;
+
+function _ctaLoadHistory()    { return JSON.parse(localStorage.getItem('dc_contract_history') || '[]'); }
+function _ctaSaveHistory(h)   { localStorage.setItem('dc_contract_history', JSON.stringify(h)); }
+
+function _ctaSaveToHistory(msgs) {
+  if (!msgs.length) return;
+  const history = _ctaLoadHistory();
+  const first = msgs.find(m => m.role === 'user');
+  const title = first ? first.content.split('\n')[0].replace('Redija o contrato de prestação de serviços:', '').replace('SERVIÇOS:', '').trim().slice(0, 50) : 'Contrato';
+  const date = new Date().toLocaleDateString('pt-BR');
+  if (_ctaCurrentHistId) {
+    const idx = history.findIndex(h => h.id === _ctaCurrentHistId);
+    if (idx >= 0) { history[idx].msgs = msgs; history[idx].updatedAt = date; _ctaSaveHistory(history); _ctaRenderHistory(); return; }
+  }
+  const id = Date.now().toString(36);
+  _ctaCurrentHistId = id;
+  history.unshift({ id, title, date, msgs });
+  _ctaSaveHistory(history.slice(0, 50));
+  _ctaRenderHistory();
+}
+
+function _ctaRenderHistory() {
+  const el = document.getElementById('cta-history-list');
+  if (!el) return;
+  const history = _ctaLoadHistory();
+  if (!history.length) {
+    el.innerHTML = '<div style="text-align:center;padding:20px 10px;font-size:11px;color:var(--text-muted)">Nenhum contrato<br>gerado ainda.</div>';
+    return;
+  }
+  el.innerHTML = history.map(h => {
+    const active = h.id === _ctaCurrentHistId;
+    return `<div onclick="_ctaLoadFromHistory('${h.id}')"
+      style="padding:9px 10px;border-radius:8px;border:1px solid ${active ? 'var(--accent)' : 'var(--border)'};background:${active ? 'var(--accent-soft)' : 'transparent'};cursor:pointer;transition:.15s;margin-bottom:5px">
+      <div style="font-size:11px;font-weight:600;line-height:1.3;margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.title || 'Contrato'}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:10px;color:var(--text-muted)">${h.updatedAt || h.date}</span>
+        <button onclick="event.stopPropagation();_ctaDeleteHistory('${h.id}')" style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:11px;padding:0 2px" title="Excluir">✕</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function _ctaLoadFromHistory(id) {
+  const history = _ctaLoadHistory();
+  const entry = history.find(h => h.id === id);
+  if (!entry) return;
+  _ctaCurrentHistId = id;
+  _ctaChatMsgs = entry.msgs || [];
+  _ctaRenderChatMsgs();
+  _ctaRenderHistory();
+}
+
+function _ctaDeleteHistory(id) {
+  const history = _ctaLoadHistory().filter(h => h.id !== id);
+  _ctaSaveHistory(history);
+  if (_ctaCurrentHistId === id) { _ctaCurrentHistId = null; _ctaChatMsgs = []; _ctaRenderChatMsgs(); }
+  _ctaRenderHistory();
+}
 
 function renderContratoIAPage() {
   _ctaTemplates      = _ctaLoadTpls();
@@ -9629,7 +9688,7 @@ function renderContratoIAPage() {
         </div>
       </div>
 
-      <!-- PAINEL DIREITO: Chat -->
+      <!-- PAINEL CENTRAL: Chat -->
       <div style="flex:1;display:flex;flex-direction:column;min-width:0">
         <!-- Cabeçalho do chat -->
         <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-card)">
@@ -9663,12 +9722,29 @@ function renderContratoIAPage() {
           </div>
         </div>
       </div>
+
+      <!-- PAINEL DIREITO: Histórico -->
+      <div style="width:220px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid var(--border);background:var(--bg-sidebar)">
+        <div style="padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+          <div style="font-size:12px;font-weight:700;color:var(--accent)">🕓 Histórico</div>
+          <button onclick="_ctaNewChat()" class="btn btn-ghost" style="font-size:10px;padding:3px 8px" title="Nova conversa">+ Novo</button>
+        </div>
+        <div id="cta-history-list" style="flex:1;overflow-y:auto;padding:10px"></div>
+      </div>
     </div>
   `;
 
   _ctaRenderTplList();
   _ctaRenderSvcList();
   _ctaSetSrc('base');
+  _ctaRenderHistory();
+}
+
+function _ctaNewChat() {
+  _ctaCurrentHistId = null;
+  _ctaChatMsgs = [];
+  _ctaRenderChatMsgs();
+  _ctaRenderHistory();
 }
 
 // ── Template management ──────────────────────────────
@@ -9912,17 +9988,18 @@ function _ctaBuildSystemPrompt() {
   return `Você é redator jurídico especializado em contratos de marketing digital para a agência DigitalCreate.
 CONTRATADA (fixo): DigitalCreate — Agência de Marketing Digital. Responsável: Amanda Estren Silveira.
 
-REGRAS DE FORMATAÇÃO OBRIGATÓRIAS:
-- Escreva em texto corrido, limpo e organizado. SEM markdown, SEM asteriscos, SEM barras invertidas.
-- Títulos de cláusulas em MAIÚSCULAS simples, sem negrito, sem símbolos.
-- Subitens numerados normalmente: 1.1, 1.2, 2.1, etc.
-- Listas com letras: a) b) c) — sem recuos excessivos.
-- Linhas de assinatura com underline simples: ________________________________
-- NUNCA use **, __, \\, ***, tabelas ou qualquer formatação markdown.
-- Use [CAMPO] para dados faltantes.
+REGRAS DE FORMATAÇÃO — SEGUIR RIGOROSAMENTE:
+1. TEXTO PURO APENAS. Zero markdown. Zero símbolos de formatação.
+2. PROIBIDO usar: ** ** __ __ * * # ## ### \\ / tabelas | --- qualquer outro símbolo markdown.
+3. Títulos de cláusulas: APENAS EM MAIÚSCULAS SIMPLES, sem nenhum símbolo antes ou depois. Exemplo: "CLÁUSULA 1 — OBJETO DO CONTRATO"
+4. Subitens numerados: 1.1, 1.2, 2.1, 2.2 etc.
+5. Listas simples com letras: a) b) c) sem recuo excessivo.
+6. NÃO inclua espaço de assinaturas, local, data ou linhas de assinatura. O contrato termina após a última cláusula.
+7. Use [CAMPO] para dados faltantes.
+8. Se você usar qualquer símbolo markdown (**, \\, tabela, etc.), a resposta será considerada inválida.
 
 CONTEÚDO:
-- Inclua sempre: identificação das partes, objeto, obrigações, valor/pagamento, vigência, rescisão e assinaturas.
+- Inclua: identificação das partes, objeto, obrigações, valor/pagamento, vigência e rescisão.
 - Quando houver múltiplos serviços, una-os em um único contrato com linguagem consistente.
 - Responda com o contrato completo quando solicitado, ou aplique apenas os ajustes pedidos mantendo o restante.`;
 }
@@ -9984,6 +10061,7 @@ async function _ctaCallAI(userMsg) {
   }
   _ctaChatLoading = false;
   _ctaRenderChatMsgs();
+  _ctaSaveToHistory(_ctaChatMsgs);
 }
 
 async function _ctaChatSend() {
