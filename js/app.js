@@ -9963,12 +9963,12 @@ async function _ctaCallAI(userMsg) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         systemPrompt: _ctaBuildSystemPrompt(),
-        messages: _ctaChatMsgs.map(m => ({ role: m.role, content: m.content }))
+        messages: _ctaChatMsgs.filter(m => m.content && m.content.trim()).map(m => ({ role: m.role, content: m.content }))
       }),
     });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    _ctaChatMsgs.push({ role: 'assistant', content: data.content });
+    _ctaChatMsgs.push({ role: 'assistant', content: data.content || '(sem resposta)' });
   } catch(e) {
     _ctaChatMsgs.push({ role: 'assistant', content: '❌ Erro: ' + e.message });
   }
