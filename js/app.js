@@ -1093,6 +1093,7 @@ function addNotification(title, body, type) {
   saveNotifications();
   updateNotifBadge();
 }
+function addNotif(msg, type) { addNotification(msg, '', type || 'info'); }
 
 async function sendMentionNotifToUser(targetName, authorName, itemName, text, boardKey, groupId, itemId, customTitle) {
   if (!window.sendFirebaseNotif) return;
@@ -9667,28 +9668,40 @@ function _ctaRenderSvcList() {
   const el = document.getElementById('cta-svc-list');
   if (!el) return;
   if (!_ctaTemplates.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Salve modelos na coluna ao lado para selecionar aqui.</div>';
+    el.innerHTML = `<div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Nenhum modelo salvo ainda. Você pode digitar os serviços manualmente:</div>
+      <input id="cta-svc-manual" type="text" placeholder="ex: Tráfego Pago, Google Meu Negócio"
+        style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:8px 12px;outline:none;box-sizing:border-box">`;
     return;
   }
   el.innerHTML = _ctaTemplates.map(t => {
     const checked = _ctaSelectedSvcIds.has(t.id);
-    return `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;border-radius:8px;border:1px solid ${checked ? 'var(--accent)' : 'var(--border)'};background:${checked ? 'var(--accent-soft)' : 'transparent'};transition:.15s" onclick="_ctaToggleSvc('${t.id}',this)">
-      <input type="checkbox" ${checked ? 'checked' : ''} style="accent-color:var(--accent);width:15px;height:15px;pointer-events:none">
+    return `<div onclick="_ctaToggleSvc('${t.id}')" id="ctasvc-${t.id}"
+      style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;border-radius:8px;border:1px solid ${checked ? 'var(--accent)' : 'var(--border)'};background:${checked ? 'var(--accent-soft)' : 'transparent'};transition:.15s;user-select:none">
+      <div style="width:16px;height:16px;border-radius:4px;border:2px solid ${checked ? 'var(--accent)' : 'var(--border)'};background:${checked ? 'var(--accent)' : 'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:.15s">
+        ${checked ? '<span style="color:#fff;font-size:11px;line-height:1">✓</span>' : ''}
+      </div>
       <span style="font-size:13px;font-weight:500">📝 ${t.name}</span>
-    </label>`;
+    </div>`;
   }).join('');
 }
 
-function _ctaToggleSvc(id, labelEl) {
+function _ctaToggleSvc(id) {
   if (_ctaSelectedSvcIds.has(id)) {
     _ctaSelectedSvcIds.delete(id);
-    if (labelEl) { labelEl.style.borderColor = 'var(--border)'; labelEl.style.background = 'transparent'; }
   } else {
     _ctaSelectedSvcIds.add(id);
-    if (labelEl) { labelEl.style.borderColor = 'var(--accent)'; labelEl.style.background = 'var(--accent-soft)'; }
   }
-  const cb = labelEl?.querySelector('input[type=checkbox]');
-  if (cb) cb.checked = _ctaSelectedSvcIds.has(id);
+  const el = document.getElementById('ctasvc-' + id);
+  if (!el) return;
+  const on = _ctaSelectedSvcIds.has(id);
+  el.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
+  el.style.background   = on ? 'var(--accent-soft)' : 'transparent';
+  const box = el.querySelector('div');
+  if (box) {
+    box.style.borderColor = on ? 'var(--accent)' : 'var(--border)';
+    box.style.background  = on ? 'var(--accent)' : 'transparent';
+    box.innerHTML = on ? '<span style="color:#fff;font-size:11px;line-height:1">✓</span>' : '';
+  }
 }
 
 function _ctaNewTemplate() {
@@ -9872,7 +9885,8 @@ function _ctaPickForm(id) {
 async function _ctaGenerate() {
   if (_ctaGenerating) return;
   const servIds = [..._ctaSelectedSvcIds];
-  if (!servIds.length) { addNotif('Selecione pelo menos um serviço', 'warn'); return; }
+  const manualSvc = document.getElementById('cta-svc-manual')?.value.trim();
+  if (!servIds.length && !manualSvc) { addNotif('Selecione ou digite pelo menos um serviço', 'warn'); return; }
 
   const btn = document.getElementById('cta-gen-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando contrato…'; }
