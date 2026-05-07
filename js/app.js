@@ -9531,8 +9531,11 @@ let _ctaSelectedSvcIds   = new Set();
 let _ctaGenerating       = false;
 let _ctaAllFormResponses = [];
 
-function _ctaLoadTpls()  { return JSON.parse(localStorage.getItem('dc_contract_tpls_v2') || '[]'); }
+function _ctaLoadTpls()    { return JSON.parse(localStorage.getItem('dc_contract_tpls_v2') || '[]'); }
 function _ctaSaveTplsLS(t) { localStorage.setItem('dc_contract_tpls_v2', JSON.stringify(t)); }
+
+let _ctaChatMsgs  = [];
+let _ctaChatLoading = false;
 
 function renderContratoIAPage() {
   _ctaTemplates      = _ctaLoadTpls();
@@ -9541,101 +9544,124 @@ function renderContratoIAPage() {
   _ctaSelectedClient = null;
   _ctaSelectedForm   = null;
   _ctaSelectedSvcIds = new Set();
+  _ctaChatMsgs       = [];
+  _ctaChatLoading    = false;
 
   document.getElementById('main-content').innerHTML = `
-    <div class="page-wrap">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px">
-        <div style="width:38px;height:38px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">📄</div>
-        <div>
-          <div style="font-size:18px;font-weight:700">Agente de Contratos</div>
-          <div style="font-size:12px;color:var(--text-muted)">Crie modelos por serviço e gere contratos completos com IA</div>
+    <div style="display:flex;height:calc(100vh - 56px);overflow:hidden">
+
+      <!-- PAINEL ESQUERDO: Configuração -->
+      <div style="width:340px;flex-shrink:0;display:flex;flex-direction:column;border-right:1px solid var(--border);overflow-y:auto;background:var(--bg-sidebar)">
+        <div style="padding:16px;border-bottom:1px solid var(--border)">
+          <div style="font-size:15px;font-weight:700;margin-bottom:2px">📄 Agente de Contratos</div>
+          <div style="font-size:11px;color:var(--text-muted)">Preencha e gere via chat com IA</div>
         </div>
-      </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
+        <div style="padding:14px;display:flex;flex-direction:column;gap:14px">
 
-        <!-- COLUNA ESQUERDA: Modelos -->
-        <div style="display:flex;flex-direction:column;gap:14px">
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-              <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px">📁 Modelos de contrato</div>
-              <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="_ctaNewTemplate()">+ Novo modelo</button>
+          <!-- Modelos -->
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+              <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px">📁 Modelos</div>
+              <button class="btn btn-primary" style="font-size:10px;padding:3px 9px" onclick="_ctaNewTemplate()">+ Novo</button>
             </div>
-            <div id="cta-tpl-list" style="display:flex;flex-direction:column;gap:7px"></div>
+            <div id="cta-tpl-list" style="display:flex;flex-direction:column;gap:5px"></div>
           </div>
 
           <!-- Editor de template -->
-          <div id="cta-tpl-editor" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:18px">
-            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px" id="cta-tpl-editor-title">✏️ Novo modelo</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div class="form-row" style="margin:0"><label>Nome do serviço</label>
-                <input id="cta-tpl-name" type="text" placeholder="ex: Tráfego Pago, Google Meu Negócio…">
+          <div id="cta-tpl-editor" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:12px;padding:14px">
+            <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:10px" id="cta-tpl-editor-title">✏️ Novo modelo</div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div class="form-row" style="margin:0"><label style="font-size:11px">Nome do serviço</label>
+                <input id="cta-tpl-name" type="text" placeholder="ex: Tráfego Pago">
               </div>
-              <div class="form-row" style="margin:0"><label>Texto base do contrato</label>
-                <textarea id="cta-tpl-text" rows="12" placeholder="Cole aqui o texto completo do contrato modelo para este serviço…" style="resize:vertical;line-height:1.6;font-size:12px"></textarea>
+              <div class="form-row" style="margin:0"><label style="font-size:11px">Texto base</label>
+                <textarea id="cta-tpl-text" rows="8" placeholder="Cole o contrato modelo aqui…" style="resize:vertical;line-height:1.5;font-size:11px"></textarea>
               </div>
-              <div style="display:flex;gap:8px">
-                <button class="btn btn-primary" style="flex:1" onclick="_ctaSaveTpl()">💾 Salvar modelo</button>
-                <button class="btn btn-ghost" onclick="_ctaCancelTpl()">Cancelar</button>
+              <div style="display:flex;gap:6px">
+                <button class="btn btn-primary" style="flex:1;font-size:11px" onclick="_ctaSaveTpl()">💾 Salvar</button>
+                <button class="btn btn-ghost" style="font-size:11px" onclick="_ctaCancelTpl()">✕</button>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- COLUNA DIREITA: Gerador -->
-        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="height:1px;background:var(--border)"></div>
 
-          <!-- 1 — Cliente -->
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
-            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">1 — Cliente</div>
-            <div style="display:flex;gap:6px;margin-bottom:12px">
-              <button id="ctab-base"   onclick="_ctaSetSrc('base')"   class="btn btn-ghost" style="flex:1;font-size:11px;padding:6px 8px">👥 Base</button>
-              <button id="ctab-form"   onclick="_ctaSetSrc('form')"   class="btn btn-ghost" style="flex:1;font-size:11px;padding:6px 8px">📋 Formulário</button>
-              <button id="ctab-manual" onclick="_ctaSetSrc('manual')" class="btn btn-ghost" style="flex:1;font-size:11px;padding:6px 8px">✍️ Manual</button>
+          <!-- Cliente -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">1 — Cliente</div>
+            <div style="display:flex;gap:4px;margin-bottom:8px">
+              <button id="ctab-base"   onclick="_ctaSetSrc('base')"   class="btn btn-ghost" style="flex:1;font-size:10px;padding:5px 4px">👥 Base</button>
+              <button id="ctab-form"   onclick="_ctaSetSrc('form')"   class="btn btn-ghost" style="flex:1;font-size:10px;padding:5px 4px">📋 Form</button>
+              <button id="ctab-manual" onclick="_ctaSetSrc('manual')" class="btn btn-ghost" style="flex:1;font-size:10px;padding:5px 4px">✍️ Manual</button>
             </div>
             <div id="cta-src-panel"></div>
-            <div id="cta-client-badge" style="display:none;margin-top:8px;background:var(--accent-soft);border:1px solid rgba(124,92,252,.3);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--accent)"></div>
+            <div id="cta-client-badge" style="display:none;margin-top:6px;background:var(--accent-soft);border:1px solid rgba(124,92,252,.3);border-radius:7px;padding:6px 10px;font-size:11px;color:var(--accent)"></div>
           </div>
 
-          <!-- 2 — Serviços -->
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
-            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">2 — Serviços do contrato</div>
-            <div id="cta-svc-list" style="display:flex;flex-direction:column;gap:7px"></div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Selecione os serviços que estarão no contrato. Os modelos salvos serão usados pela IA.</div>
+          <div style="height:1px;background:var(--border)"></div>
+
+          <!-- Serviços -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">2 — Serviços</div>
+            <div id="cta-svc-list" style="display:flex;flex-direction:column;gap:5px"></div>
           </div>
 
-          <!-- 3 — Detalhes -->
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
-            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">3 — Detalhes do contrato</div>
-            <div style="display:flex;flex-direction:column;gap:10px">
-              <div class="form-row" style="margin:0"><label>Valor</label><input id="cta-valor" type="text" placeholder="ex: R$ 1.800,00/mês"></div>
-              <div class="form-row" style="margin:0"><label>Vencimento</label><input id="cta-venc" type="text" placeholder="ex: todo dia 10"></div>
-              <div class="form-row" style="margin:0"><label>Vigência</label><input id="cta-vigencia" type="text" placeholder="ex: 12 meses a partir de 01/06/2026"></div>
-              <div class="form-row" style="margin:0"><label>Observações para a IA</label>
-                <textarea id="cta-obs" rows="2" placeholder="Cláusulas especiais, condições específicas…" style="resize:vertical"></textarea>
+          <div style="height:1px;background:var(--border)"></div>
+
+          <!-- Detalhes -->
+          <div>
+            <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px">3 — Detalhes</div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div class="form-row" style="margin:0"><label style="font-size:11px">Valor</label><input id="cta-valor" type="text" placeholder="R$ 1.800,00/mês"></div>
+              <div class="form-row" style="margin:0"><label style="font-size:11px">Vencimento</label><input id="cta-venc" type="text" placeholder="todo dia 10"></div>
+              <div class="form-row" style="margin:0"><label style="font-size:11px">Vigência</label><input id="cta-vigencia" type="text" placeholder="12 meses a partir de…"></div>
+              <div class="form-row" style="margin:0"><label style="font-size:11px">Observações</label>
+                <textarea id="cta-obs" rows="2" placeholder="Cláusulas especiais…" style="resize:vertical;font-size:11px"></textarea>
               </div>
             </div>
           </div>
 
           <button id="cta-gen-btn" onclick="_ctaGenerate()"
-            style="width:100%;padding:14px;background:var(--accent-grad);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 4px 20px rgba(124,92,252,.35);transition:.2s">
+            style="width:100%;padding:12px;background:var(--accent-grad);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 4px 16px rgba(124,92,252,.35);transition:.2s">
             ✨ Gerar Contrato
           </button>
         </div>
       </div>
 
-      <!-- Resultado -->
-      <div id="cta-result-wrap" style="display:none;margin-top:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
-          <div style="font-size:14px;font-weight:700">📄 Contrato Gerado</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button class="btn btn-ghost" style="font-size:12px" onclick="_ctaCopy()">📋 Copiar tudo</button>
-            <button class="btn btn-ghost" style="font-size:12px" onclick="_ctaOpenDocs()">📝 Abrir Google Docs</button>
-            <button class="btn btn-primary" style="font-size:12px" onclick="_ctaGenerate()">🔄 Regenerar</button>
+      <!-- PAINEL DIREITO: Chat -->
+      <div style="flex:1;display:flex;flex-direction:column;min-width:0">
+        <!-- Cabeçalho do chat -->
+        <div style="padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg-card)">
+          <div style="font-size:13px;font-weight:600" id="cta-chat-title">💬 Chat do Contrato</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="_ctaCopyLast()">📋 Copiar último</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="_ctaOpenDocs()">📝 Google Docs</button>
+            <button class="btn btn-ghost" style="font-size:11px;padding:4px 10px" onclick="_ctaClearChat()">🗑️ Limpar</button>
           </div>
         </div>
-        <textarea id="cta-result-text" rows="30"
-          style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:13px;padding:14px;resize:vertical;outline:none;line-height:1.8;box-sizing:border-box"></textarea>
+
+        <!-- Mensagens -->
+        <div id="cta-chat-msgs" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px">
+          <div style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:60px">
+            <div style="font-size:32px;margin-bottom:12px">📄</div>
+            Preencha as informações ao lado e clique em<br>
+            <strong style="color:var(--accent)">✨ Gerar Contrato</strong> para começar.
+          </div>
+        </div>
+
+        <!-- Input do chat -->
+        <div style="padding:12px 16px;border-top:1px solid var(--border);background:var(--bg-card)">
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <textarea id="cta-chat-input" rows="2" placeholder="Peça ajustes ao contrato… ex: &quot;adicione uma cláusula de multa&quot;, &quot;torne mais formal&quot;"
+              style="flex:1;background:var(--bg-base);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-family:var(--font);font-size:13px;padding:10px 12px;resize:none;outline:none;line-height:1.5"
+              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();_ctaChatSend()}"></textarea>
+            <button onclick="_ctaChatSend()"
+              style="background:var(--accent);color:#fff;border:none;border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              ➤
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   `;
@@ -9882,15 +9908,101 @@ function _ctaPickForm(id) {
   }
 }
 
+function _ctaBuildSystemPrompt() {
+  return `Você é redator jurídico especializado em contratos de marketing digital para a agência DigitalCreate.
+CONTRATADA (fixo): DigitalCreate — Agência de Marketing Digital. Responsável: Amanda Estren Silveira.
+Redija contratos profissionais em português formal, estruturados com cláusulas numeradas em MAIÚSCULAS.
+Use [CAMPO] para dados faltantes. Inclua sempre: objeto, obrigações, valor/pagamento, vigência, rescisão e assinaturas.
+Quando houver múltiplos serviços, una-os em um único contrato padronizado com linguagem e cláusulas consistentes.
+Responda sempre com o contrato completo quando solicitado, ou com ajustes específicos quando o usuário pedir modificações.`;
+}
+
+function _ctaRenderChatMsgs() {
+  const el = document.getElementById('cta-chat-msgs');
+  if (!el) return;
+  if (!_ctaChatMsgs.length) {
+    el.innerHTML = `<div style="text-align:center;color:var(--text-muted);font-size:13px;margin-top:60px">
+      <div style="font-size:32px;margin-bottom:12px">📄</div>
+      Preencha as informações ao lado e clique em<br>
+      <strong style="color:var(--accent)">✨ Gerar Contrato</strong> para começar.
+    </div>`;
+    return;
+  }
+  el.innerHTML = _ctaChatMsgs.map(m => {
+    const isUser = m.role === 'user';
+    const text = (m.content || '').replace(/\n/g, '<br>');
+    return `<div style="display:flex;flex-direction:column;align-items:${isUser ? 'flex-end' : 'flex-start'};gap:4px">
+      <div style="font-size:10px;color:var(--text-muted);padding:0 4px">${isUser ? 'Você' : '🤖 IA'}</div>
+      <div style="max-width:90%;padding:12px 14px;border-radius:${isUser ? '14px 14px 4px 14px' : '14px 14px 14px 4px'};background:${isUser ? 'var(--accent)' : 'var(--bg-card)'};color:${isUser ? '#fff' : 'var(--text-primary)'};font-size:13px;line-height:1.65;border:${isUser ? 'none' : '1px solid var(--border)'};white-space:pre-wrap;word-break:break-word">
+        ${text}
+      </div>
+    </div>`;
+  }).join('');
+  if (_ctaChatLoading) {
+    el.innerHTML += `<div style="display:flex;align-items:flex-start;gap:4px;flex-direction:column">
+      <div style="font-size:10px;color:var(--text-muted);padding:0 4px">🤖 IA</div>
+      <div style="padding:12px 16px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px 14px 14px 4px">
+        <span style="display:inline-flex;gap:4px">
+          <span style="width:7px;height:7px;background:var(--accent);border-radius:50%;animation:ia-dot 1.2s ease-in-out infinite"></span>
+          <span style="width:7px;height:7px;background:var(--accent);border-radius:50%;animation:ia-dot 1.2s ease-in-out .4s infinite"></span>
+          <span style="width:7px;height:7px;background:var(--accent);border-radius:50%;animation:ia-dot 1.2s ease-in-out .8s infinite"></span>
+        </span>
+      </div>
+    </div>`;
+  }
+  el.scrollTop = el.scrollHeight;
+}
+
+async function _ctaCallAI(userMsg) {
+  _ctaChatMsgs.push({ role: 'user', content: userMsg });
+  _ctaChatLoading = true;
+  _ctaRenderChatMsgs();
+  try {
+    const res = await fetch('/.netlify/functions/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        systemPrompt: _ctaBuildSystemPrompt(),
+        messages: _ctaChatMsgs.map(m => ({ role: m.role, content: m.content }))
+      }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    _ctaChatMsgs.push({ role: 'assistant', content: data.content });
+  } catch(e) {
+    _ctaChatMsgs.push({ role: 'assistant', content: '❌ Erro: ' + e.message });
+  }
+  _ctaChatLoading = false;
+  _ctaRenderChatMsgs();
+}
+
+async function _ctaChatSend() {
+  const inp = document.getElementById('cta-chat-input');
+  const text = inp?.value.trim();
+  if (!text || _ctaChatLoading) return;
+  inp.value = '';
+  await _ctaCallAI(text);
+}
+
+function _ctaClearChat() {
+  _ctaChatMsgs = [];
+  _ctaRenderChatMsgs();
+}
+
+function _ctaCopyLast() {
+  const last = [..._ctaChatMsgs].reverse().find(m => m.role === 'assistant');
+  if (!last) { addNotif('Nenhum contrato gerado ainda', 'warn'); return; }
+  navigator.clipboard.writeText(last.content).then(() => addNotif('Copiado!', 'success'));
+}
+
 async function _ctaGenerate() {
-  if (_ctaGenerating) return;
+  if (_ctaChatLoading) return;
   const servIds = [..._ctaSelectedSvcIds];
   const manualSvc = document.getElementById('cta-svc-manual')?.value.trim();
   if (!servIds.length && !manualSvc) { addNotif('Selecione ou digite pelo menos um serviço', 'warn'); return; }
 
   const btn = document.getElementById('cta-gen-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando contrato…'; }
-  _ctaGenerating = true;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando…'; }
 
   // Dados do cliente
   let clienteCtx = '';
@@ -9911,7 +10023,7 @@ async function _ctaGenerate() {
 
   // Templates dos serviços selecionados
   let templatesCtx = '';
-  let servicosList = '';
+  let servicosList = manualSvc || '';
   servIds.forEach(id => {
     const tpl = _ctaTemplates.find(t => t.id === id);
     if (!tpl) return;
@@ -9926,38 +10038,12 @@ async function _ctaGenerate() {
   const vigencia = document.getElementById('cta-vigencia')?.value.trim();
   const obs      = document.getElementById('cta-obs')?.value.trim();
 
-  const systemPrompt = `Você é redator jurídico especializado em contratos de marketing digital para a agência DigitalCreate.
-CONTRATADA (fixo): DigitalCreate — Agência de Marketing Digital. Responsável: Amanda Estren Silveira.
-Redija contratos profissionais em português formal, estruturados com cláusulas numeradas em MAIÚSCULAS.
-Use [CAMPO] para dados faltantes. Inclua sempre: objeto, obrigações, valor/pagamento, vigência, rescisão e assinaturas.
-Quando houver múltiplos serviços, una-os em um único contrato padronizado com linguagem e cláusulas consistentes.`;
-
   const userMsg = `Redija o contrato de prestação de serviços:\nSERVIÇOS: ${servicosList}${valor ? '\nVALOR: ' + valor : ''}${venc ? '\nVENCIMENTO: ' + venc : ''}${vigencia ? '\nVIGÊNCIA: ' + vigencia : ''}${obs ? '\nOBSERVAÇÕES: ' + obs : ''}${clienteCtx}${templatesCtx || '\n(Use estrutura padrão profissional para agência de marketing digital)'}`;
 
-  try {
-    const res = await fetch('/.netlify/functions/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ systemPrompt, messages: [{ role: 'user', content: userMsg }] }),
-    });
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-    document.getElementById('cta-result-text').value = data.content;
-    const wrap = document.getElementById('cta-result-wrap');
-    if (wrap) { wrap.style.display = 'block'; setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth' }), 100); }
-    addNotif('Contrato gerado com sucesso!', 'success');
-  } catch(e) {
-    addNotif('Erro ao gerar: ' + e.message, 'error');
-  }
+  _ctaChatMsgs = [];
+  await _ctaCallAI(userMsg);
 
-  _ctaGenerating = false;
   if (btn) { btn.disabled = false; btn.textContent = '✨ Gerar Contrato'; }
-}
-
-function _ctaCopy() {
-  const ta = document.getElementById('cta-result-text');
-  if (!ta || !ta.value) return;
-  navigator.clipboard.writeText(ta.value).then(() => addNotif('Copiado para a área de transferência!', 'success'));
 }
 
 function _ctaOpenDocs() {
