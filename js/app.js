@@ -9518,172 +9518,319 @@ function _iaUsePrompt(text) {
 }
 
 // ═══════════════════════════════════════════════════════
-// AGENTE IA — CONTRATOS
+// AGENTE IA — CONTRATOS (v2)
 // ═══════════════════════════════════════════════════════
 
-const _SERVICOS_CONTRATO = [
-  { key: 'trafego',     label: 'Tráfego Pago',           emoji: '🎯' },
-  { key: 'gmb',         label: 'Google Meu Negócio',      emoji: '📍' },
-  { key: 'social',      label: 'Social Media / Conteúdo', emoji: '📱' },
-  { key: 'sites',       label: 'Sites / Landing Pages',   emoji: '🌐' },
-  { key: 'artes',       label: 'Criação de Artes',        emoji: '🎨' },
-  { key: 'consultoria', label: 'Consultoria',             emoji: '💼' },
-];
-
-let _ctaSelectedServices = new Set();
-let _ctaFormResponse     = null;
+let _ctaTemplates        = [];   // [{id,name,text}]
+let _ctaEditingId        = null; // id do template em edição
+let _ctaClientSource     = 'base'; // 'base' | 'form' | 'manual'
+let _ctaSelectedClient   = null;
+let _ctaSelectedForm     = null;
+let _ctaSelectedSvcIds   = new Set();
 let _ctaGenerating       = false;
-let _ctaActiveTemplateKey  = 'trafego';
-let _ctaTemplatesInMemory  = {};
-let _ctaAllFormResponses   = [];
+let _ctaAllFormResponses = [];
 
-function _ctaGetTemplates() { return JSON.parse(localStorage.getItem('dc_contract_templates') || '{}'); }
-function _ctaSetTemplates(t) { localStorage.setItem('dc_contract_templates', JSON.stringify(t)); }
+function _ctaLoadTpls()  { return JSON.parse(localStorage.getItem('dc_contract_tpls_v2') || '[]'); }
+function _ctaSaveTplsLS(t) { localStorage.setItem('dc_contract_tpls_v2', JSON.stringify(t)); }
 
 function renderContratoIAPage() {
-  _ctaSelectedServices = new Set();
-  _ctaFormResponse     = null;
-  _ctaTemplatesInMemory = _ctaGetTemplates();
-
-  const servicoOpts = _SERVICOS_CONTRATO.map(s =>
-    `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px;border:1px solid var(--border);transition:.15s">
-      <input type="checkbox" value="${s.key}" onchange="_ctaToggleService('${s.key}',this.checked)" style="accent-color:var(--accent);width:15px;height:15px;cursor:pointer">
-      <span style="font-size:16px">${s.emoji}</span>
-      <span style="font-size:13px;font-weight:500">${s.label}</span>
-    </label>`
-  ).join('');
-
-  const templateTabs = _SERVICOS_CONTRATO.map(s =>
-    `<button onclick="_ctaShowTemplate('${s.key}')" id="ctab-${s.key}"
-      style="background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text-muted);font-family:var(--font);transition:.15s">
-      ${s.emoji} ${s.label.split('/')[0].trim()}
-    </button>`
-  ).join('');
+  _ctaTemplates      = _ctaLoadTpls();
+  _ctaEditingId      = null;
+  _ctaClientSource   = 'base';
+  _ctaSelectedClient = null;
+  _ctaSelectedForm   = null;
+  _ctaSelectedSvcIds = new Set();
 
   document.getElementById('main-content').innerHTML = `
-    <div class="page-wrap" style="max-width:920px">
-      <div style="margin-bottom:22px">
-        <div style="font-size:19px;font-weight:700;margin-bottom:4px">📄 Agente de Contratos</div>
-        <div style="font-size:13px;color:var(--text-muted)">Selecione os serviços e uma resposta do formulário. A IA redige o contrato completo pronto para o Canva ou Google Docs.</div>
+    <div class="page-wrap">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:22px">
+        <div style="width:38px;height:38px;background:var(--accent-soft);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">📄</div>
+        <div>
+          <div style="font-size:18px;font-weight:700">Agente de Contratos</div>
+          <div style="font-size:12px;color:var(--text-muted)">Crie modelos por serviço e gere contratos completos com IA</div>
+        </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start">
 
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px">
-            <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">1 — Serviços contratados</div>
-            <div style="display:flex;flex-direction:column;gap:7px" id="cta-services">${servicoOpts}</div>
-            <div style="margin-top:10px">
-              <input type="text" id="cta-servico-custom" placeholder="+ Outro serviço (opcional)"
-                style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:7px 12px;outline:none;box-sizing:border-box">
+        <!-- COLUNA ESQUERDA: Modelos -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px">📁 Modelos de contrato</div>
+              <button class="btn btn-primary" style="font-size:11px;padding:5px 12px" onclick="_ctaNewTemplate()">+ Novo modelo</button>
             </div>
+            <div id="cta-tpl-list" style="display:flex;flex-direction:column;gap:7px"></div>
           </div>
 
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px">
-            <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px">2 — Dados do cliente (formulário)</div>
-            <div style="font-size:12px;color:var(--text-muted);margin-bottom:8px">Escolha a resposta do formulário de contrato para preencher os dados automaticamente.</div>
-            <input type="text" placeholder="🔍 Buscar cliente..." oninput="_ctaRenderFormList(this.value)"
-              style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:6px 10px;outline:none;box-sizing:border-box;margin-bottom:8px">
-            <div id="cta-form-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto">
-              <div style="text-align:center;padding:16px;color:var(--text-muted);font-size:12px">⏳ Carregando…</div>
+          <!-- Editor de template -->
+          <div id="cta-tpl-editor" style="display:none;background:var(--bg-card);border:1px solid var(--accent);border-radius:14px;padding:18px">
+            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px" id="cta-tpl-editor-title">✏️ Novo modelo</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="form-row" style="margin:0"><label>Nome do serviço</label>
+                <input id="cta-tpl-name" type="text" placeholder="ex: Tráfego Pago, Google Meu Negócio…">
+              </div>
+              <div class="form-row" style="margin:0"><label>Texto base do contrato</label>
+                <textarea id="cta-tpl-text" rows="12" placeholder="Cole aqui o texto completo do contrato modelo para este serviço…" style="resize:vertical;line-height:1.6;font-size:12px"></textarea>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn btn-primary" style="flex:1" onclick="_ctaSaveTpl()">💾 Salvar modelo</button>
+                <button class="btn btn-ghost" onclick="_ctaCancelTpl()">Cancelar</button>
+              </div>
             </div>
-            <div id="cta-selected-banner" style="display:none;margin-top:8px;background:var(--accent-soft);border:1px solid rgba(124,92,252,.25);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--accent)"></div>
+          </div>
+        </div>
+
+        <!-- COLUNA DIREITA: Gerador -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+
+          <!-- 1 — Cliente -->
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
+            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">1 — Cliente</div>
+            <div style="display:flex;gap:6px;margin-bottom:12px">
+              <button id="ctab-base"   onclick="_ctaSetSrc('base')"   class="btn btn-ghost" style="flex:1;font-size:11px;padding:6px 8px">👥 Base</button>
+              <button id="ctab-form"   onclick="_ctaSetSrc('form')"   class="btn btn-ghost" style="flex:1;font-size:11px;padding:6px 8px">📋 Formulário</button>
+              <button id="ctab-manual" onclick="_ctaSetSrc('manual')" class="btn btn-ghost" style="flex:1;font-size:11px;padding:6px 8px">✍️ Manual</button>
+            </div>
+            <div id="cta-src-panel"></div>
+            <div id="cta-client-badge" style="display:none;margin-top:8px;background:var(--accent-soft);border:1px solid rgba(124,92,252,.3);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--accent)"></div>
           </div>
 
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px">
-            <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px">3 — Detalhes do contrato</div>
+          <!-- 2 — Serviços -->
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
+            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">2 — Serviços do contrato</div>
+            <div id="cta-svc-list" style="display:flex;flex-direction:column;gap:7px"></div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:8px">Selecione os serviços que estarão no contrato. Os modelos salvos serão usados pela IA.</div>
+          </div>
+
+          <!-- 3 — Detalhes -->
+          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:18px">
+            <div style="font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:12px">3 — Detalhes do contrato</div>
             <div style="display:flex;flex-direction:column;gap:10px">
               <div class="form-row" style="margin:0"><label>Valor</label><input id="cta-valor" type="text" placeholder="ex: R$ 1.800,00/mês"></div>
               <div class="form-row" style="margin:0"><label>Vencimento</label><input id="cta-venc" type="text" placeholder="ex: todo dia 10"></div>
               <div class="form-row" style="margin:0"><label>Vigência</label><input id="cta-vigencia" type="text" placeholder="ex: 12 meses a partir de 01/06/2026"></div>
-              <div class="form-row" style="margin:0"><label>Observações para a IA</label><textarea id="cta-obs" rows="2" placeholder="Cláusulas especiais, condições específicas…" style="resize:vertical"></textarea></div>
+              <div class="form-row" style="margin:0"><label>Observações para a IA</label>
+                <textarea id="cta-obs" rows="2" placeholder="Cláusulas especiais, condições específicas…" style="resize:vertical"></textarea>
+              </div>
             </div>
-          </div>
-
-        </div>
-
-        <div style="display:flex;flex-direction:column;gap:16px">
-
-          <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;flex:1">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
-              <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px">Modelos base (cole aqui)</div>
-              <button class="btn btn-ghost" style="font-size:11px;padding:3px 8px" onclick="_ctaSaveTemplates()">💾 Salvar modelos</button>
-            </div>
-            <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:10px">Cole o texto dos seus contratos existentes por serviço. A IA mantém sua estrutura e cláusulas.</div>
-            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px">${templateTabs}</div>
-            <textarea id="cta-tmpl-active" placeholder="Selecione uma aba acima e cole o texto do contrato modelo…"
-              style="width:100%;min-height:280px;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:10px;resize:vertical;outline:none;line-height:1.6;box-sizing:border-box"
-              oninput="_ctaOnTemplateInput(this.value)"></textarea>
           </div>
 
           <button id="cta-gen-btn" onclick="_ctaGenerate()"
-            style="width:100%;padding:14px;background:var(--accent-grad);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 4px 20px rgba(124,92,252,.4);transition:.2s">
+            style="width:100%;padding:14px;background:var(--accent-grad);color:#fff;border:none;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--font);box-shadow:0 4px 20px rgba(124,92,252,.35);transition:.2s">
             ✨ Gerar Contrato
           </button>
-
         </div>
       </div>
 
-      <div id="cta-result-wrap" style="display:none;margin-top:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px">
+      <!-- Resultado -->
+      <div id="cta-result-wrap" style="display:none;margin-top:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
           <div style="font-size:14px;font-weight:700">📄 Contrato Gerado</div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
             <button class="btn btn-ghost" style="font-size:12px" onclick="_ctaCopy()">📋 Copiar tudo</button>
-            <button class="btn btn-ghost" style="font-size:12px" onclick="_ctaOpenDocs()">📝 Abrir Docs novo</button>
+            <button class="btn btn-ghost" style="font-size:12px" onclick="_ctaOpenDocs()">📝 Abrir Google Docs</button>
             <button class="btn btn-primary" style="font-size:12px" onclick="_ctaGenerate()">🔄 Regenerar</button>
           </div>
         </div>
         <textarea id="cta-result-text" rows="30"
           style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:13px;padding:14px;resize:vertical;outline:none;line-height:1.8;box-sizing:border-box"></textarea>
       </div>
-
     </div>
   `;
 
-  _ctaActiveTemplateKey = _SERVICOS_CONTRATO[0].key;
-  _ctaShowTemplate(_ctaActiveTemplateKey);
-  _ctaLoadFormResponses();
+  _ctaRenderTplList();
+  _ctaRenderSvcList();
+  _ctaSetSrc('base');
 }
 
-function _ctaShowTemplate(key) {
-  const ta = document.getElementById('cta-tmpl-active');
-  if (ta && _ctaActiveTemplateKey) _ctaTemplatesInMemory[_ctaActiveTemplateKey] = ta.value;
-  _ctaActiveTemplateKey = key;
-  if (ta) ta.value = _ctaTemplatesInMemory[key] || '';
-  document.querySelectorAll('[id^="ctab-"]').forEach(b => {
-    b.style.borderColor = 'var(--border)';
-    b.style.color = 'var(--text-muted)';
-    b.style.background = 'none';
+// ── Template management ──────────────────────────────
+
+function _ctaRenderTplList() {
+  const el = document.getElementById('cta-tpl-list');
+  if (!el) return;
+  if (!_ctaTemplates.length) {
+    el.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text-muted)">Nenhum modelo salvo ainda.<br>Clique em "+ Novo modelo" para começar.</div>';
+    return;
+  }
+  el.innerHTML = _ctaTemplates.map(t => `
+    <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;background:var(--bg-base);border:1px solid var(--border);border-radius:9px">
+      <div style="flex:1;font-size:13px;font-weight:600">📝 ${t.name}</div>
+      <span style="font-size:10px;color:var(--text-muted)">${t.text ? t.text.length + ' chars' : 'vazio'}</span>
+      <button class="btn btn-ghost" style="padding:3px 7px;font-size:11px" onclick="_ctaEditTpl('${t.id}')">✏️</button>
+      <button class="btn btn-ghost" style="padding:3px 7px;font-size:11px;color:var(--red)" onclick="_ctaDeleteTpl('${t.id}')">✕</button>
+    </div>
+  `).join('');
+}
+
+function _ctaRenderSvcList() {
+  const el = document.getElementById('cta-svc-list');
+  if (!el) return;
+  if (!_ctaTemplates.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted)">Salve modelos na coluna ao lado para selecionar aqui.</div>';
+    return;
+  }
+  el.innerHTML = _ctaTemplates.map(t => {
+    const checked = _ctaSelectedSvcIds.has(t.id);
+    return `<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;border-radius:8px;border:1px solid ${checked ? 'var(--accent)' : 'var(--border)'};background:${checked ? 'var(--accent-soft)' : 'transparent'};transition:.15s" onclick="_ctaToggleSvc('${t.id}',this)">
+      <input type="checkbox" ${checked ? 'checked' : ''} style="accent-color:var(--accent);width:15px;height:15px;pointer-events:none">
+      <span style="font-size:13px;font-weight:500">📝 ${t.name}</span>
+    </label>`;
+  }).join('');
+}
+
+function _ctaToggleSvc(id, labelEl) {
+  if (_ctaSelectedSvcIds.has(id)) {
+    _ctaSelectedSvcIds.delete(id);
+    if (labelEl) { labelEl.style.borderColor = 'var(--border)'; labelEl.style.background = 'transparent'; }
+  } else {
+    _ctaSelectedSvcIds.add(id);
+    if (labelEl) { labelEl.style.borderColor = 'var(--accent)'; labelEl.style.background = 'var(--accent-soft)'; }
+  }
+  const cb = labelEl?.querySelector('input[type=checkbox]');
+  if (cb) cb.checked = _ctaSelectedSvcIds.has(id);
+}
+
+function _ctaNewTemplate() {
+  _ctaEditingId = null;
+  const ed = document.getElementById('cta-tpl-editor');
+  const title = document.getElementById('cta-tpl-editor-title');
+  if (ed) ed.style.display = 'block';
+  if (title) title.textContent = '✏️ Novo modelo';
+  const name = document.getElementById('cta-tpl-name');
+  const text = document.getElementById('cta-tpl-text');
+  if (name) name.value = '';
+  if (text) text.value = '';
+  ed?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function _ctaEditTpl(id) {
+  const tpl = _ctaTemplates.find(t => t.id === id);
+  if (!tpl) return;
+  _ctaEditingId = id;
+  const ed = document.getElementById('cta-tpl-editor');
+  const title = document.getElementById('cta-tpl-editor-title');
+  if (ed) ed.style.display = 'block';
+  if (title) title.textContent = `✏️ Editando: ${tpl.name}`;
+  const name = document.getElementById('cta-tpl-name');
+  const text = document.getElementById('cta-tpl-text');
+  if (name) name.value = tpl.name;
+  if (text) text.value = tpl.text;
+  ed?.scrollIntoView({ behavior: 'smooth' });
+}
+
+function _ctaSaveTpl() {
+  const name = document.getElementById('cta-tpl-name')?.value.trim();
+  const text = document.getElementById('cta-tpl-text')?.value.trim();
+  if (!name) { addNotif('Digite o nome do serviço', 'warn'); return; }
+  if (_ctaEditingId) {
+    const idx = _ctaTemplates.findIndex(t => t.id === _ctaEditingId);
+    if (idx >= 0) { _ctaTemplates[idx].name = name; _ctaTemplates[idx].text = text; }
+  } else {
+    _ctaTemplates.push({ id: Date.now().toString(36), name, text: text || '' });
+  }
+  _ctaSaveTplsLS(_ctaTemplates);
+  _ctaEditingId = null;
+  document.getElementById('cta-tpl-editor').style.display = 'none';
+  _ctaRenderTplList();
+  _ctaRenderSvcList();
+  addNotif('Modelo salvo!', 'success');
+}
+
+function _ctaCancelTpl() {
+  _ctaEditingId = null;
+  document.getElementById('cta-tpl-editor').style.display = 'none';
+}
+
+function _ctaDeleteTpl(id) {
+  if (!confirm('Excluir este modelo?')) return;
+  _ctaTemplates = _ctaTemplates.filter(t => t.id !== id);
+  _ctaSelectedSvcIds.delete(id);
+  _ctaSaveTplsLS(_ctaTemplates);
+  _ctaRenderTplList();
+  _ctaRenderSvcList();
+}
+
+// ── Client source ────────────────────────────────────
+
+function _ctaSetSrc(src) {
+  _ctaClientSource = src;
+  _ctaSelectedClient = null;
+  _ctaSelectedForm = null;
+  ['base','form','manual'].forEach(s => {
+    const btn = document.getElementById('ctab-' + s);
+    if (!btn) return;
+    btn.style.background = s === src ? 'var(--accent)' : '';
+    btn.style.color = s === src ? '#fff' : '';
+    btn.style.borderColor = s === src ? 'var(--accent)' : '';
   });
-  const btn = document.getElementById('ctab-' + key);
-  if (btn) { btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)'; btn.style.background = 'var(--accent-soft)'; }
+  const badge = document.getElementById('cta-client-badge');
+  if (badge) badge.style.display = 'none';
+  const panel = document.getElementById('cta-src-panel');
+  if (!panel) return;
+
+  if (src === 'base') {
+    const clients = (window.clientsData || []).filter(c => !c.archived && c.name);
+    panel.innerHTML = `<input type="text" placeholder="🔍 Buscar cliente da base..." oninput="_ctaFilterBase(this.value)"
+      style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none;box-sizing:border-box;margin-bottom:8px">
+      <div id="cta-base-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto"></div>`;
+    _ctaRenderBaseList(clients, '');
+  } else if (src === 'form') {
+    panel.innerHTML = `<input type="text" placeholder="🔍 Buscar por nome..." oninput="_ctaFilterForm(this.value)"
+      style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none;box-sizing:border-box;margin-bottom:8px">
+      <div id="cta-form-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto">
+        <div style="text-align:center;padding:14px;font-size:12px;color:var(--text-muted)">⏳ Carregando…</div>
+      </div>`;
+    _ctaLoadFormResponses();
+  } else {
+    panel.innerHTML = `<div style="display:flex;flex-direction:column;gap:8px">
+      <div class="form-row" style="margin:0"><label>Nome / Razão Social</label><input id="cta-m-nome" type="text" placeholder="Nome completo ou Razão Social"></div>
+      <div class="form-row" style="margin:0"><label>CPF / CNPJ</label><input id="cta-m-doc" type="text" placeholder="000.000.000-00"></div>
+      <div class="form-row" style="margin:0"><label>E-mail</label><input id="cta-m-email" type="email" placeholder="cliente@email.com"></div>
+      <div class="form-row" style="margin:0"><label>WhatsApp</label><input id="cta-m-wpp" type="text" placeholder="(11) 99999-9999"></div>
+      <div class="form-row" style="margin:0"><label>Endereço</label><input id="cta-m-end" type="text" placeholder="Rua, número, cidade/UF"></div>
+    </div>`;
+  }
 }
 
-function _ctaOnTemplateInput(val) { _ctaTemplatesInMemory[_ctaActiveTemplateKey] = val; }
-
-function _ctaSaveTemplates() {
-  const ta = document.getElementById('cta-tmpl-active');
-  if (ta && _ctaActiveTemplateKey) _ctaTemplatesInMemory[_ctaActiveTemplateKey] = ta.value;
-  _ctaSetTemplates(_ctaTemplatesInMemory);
-  addNotif('Modelos salvos!', 'success');
+function _ctaRenderBaseList(clients, filter) {
+  const el = document.getElementById('cta-base-list');
+  if (!el) return;
+  const filtered = filter ? clients.filter(c => c.name.toLowerCase().includes(filter.toLowerCase())) : clients;
+  if (!filtered.length) {
+    el.innerHTML = '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text-muted)">Nenhum cliente encontrado.</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(c => {
+    const sel = _ctaSelectedClient && _ctaSelectedClient.id === c.id;
+    return `<div onclick="_ctaPickBase('${c.id}')" style="padding:8px 12px;border-radius:8px;border:1px solid ${sel ? 'var(--accent)' : 'var(--border)'};background:${sel ? 'var(--accent-soft)' : 'transparent'};cursor:pointer;transition:.15s">
+      <div style="font-size:12px;font-weight:600">${c.name}</div>
+      ${c.segment ? `<div style="font-size:10.5px;color:var(--text-muted)">${c.segment}</div>` : ''}
+    </div>`;
+  }).join('');
 }
 
-function _ctaToggleService(key, checked) {
-  if (checked) _ctaSelectedServices.add(key); else _ctaSelectedServices.delete(key);
-  document.querySelectorAll('#cta-services label').forEach(l => {
-    const cb = l.querySelector('input[type=checkbox]');
-    if (cb) l.style.borderColor = cb.checked ? 'var(--accent)' : 'var(--border)';
-  });
+function _ctaFilterBase(val) {
+  const clients = (window.clientsData || []).filter(c => !c.archived && c.name);
+  _ctaRenderBaseList(clients, val);
+}
+
+function _ctaPickBase(id) {
+  _ctaSelectedClient = (window.clientsData || []).find(c => c.id === id) || null;
+  const clients = (window.clientsData || []).filter(c => !c.archived && c.name);
+  _ctaRenderBaseList(clients, '');
+  const badge = document.getElementById('cta-client-badge');
+  if (badge && _ctaSelectedClient) {
+    badge.style.display = 'block';
+    badge.innerHTML = `✅ <strong>${_ctaSelectedClient.name}</strong> selecionado`;
+  }
 }
 
 async function _ctaLoadFormResponses() {
-  const list = document.getElementById('cta-form-list');
-  if (!list) return;
   try {
-    const fb = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-    const q = fb.query(fb.collection(window._db, 'briefings_contrato'), fb.orderBy('submittedAt', 'desc'), fb.limit(50));
-    const snap = await fb.getDocs(q);
+    const { query, collection, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
+    const q = query(collection(window._crmDb, 'briefings_contrato'), orderBy('submittedAt', 'desc'), limit(50));
+    const snap = await getDocs(q);
     _ctaAllFormResponses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(e) {
     _ctaAllFormResponses = JSON.parse(localStorage.getItem('dc_briefings_contrato') || '[]');
@@ -9697,71 +9844,81 @@ function _ctaRenderFormList(filter) {
   const items = filter
     ? _ctaAllFormResponses.filter(r => (r.nome_razao || r.title || '').toLowerCase().includes(filter.toLowerCase()))
     : _ctaAllFormResponses;
-
   if (!items.length) {
-    list.innerHTML = '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text-muted)">Nenhuma resposta encontrada.<br><span style="font-size:11px">Preencha o formulário de contrato para aparecer aqui.</span></div>';
+    list.innerHTML = '<div style="text-align:center;padding:14px;font-size:12px;color:var(--text-muted)">Nenhuma resposta de formulário de contrato encontrada.</div>';
     return;
   }
   list.innerHTML = items.map(r => {
     const name = r.nome_razao || r.title || 'Sem nome';
     const date = r.submittedAt ? new Date(r.submittedAt.seconds ? r.submittedAt.seconds * 1000 : r.submittedAt).toLocaleDateString('pt-BR') : '—';
-    const sel  = _ctaFormResponse && _ctaFormResponse.id === r.id;
-    return `<div onclick="_ctaSelectForm('${r.id}')" style="padding:9px 12px;border-radius:8px;border:1px solid ${sel ? 'var(--accent)' : 'var(--border)'};background:${sel ? 'var(--accent-soft)' : 'transparent'};cursor:pointer;transition:.15s">
+    const sel  = _ctaSelectedForm && _ctaSelectedForm.id === r.id;
+    return `<div onclick="_ctaPickForm('${r.id}')" style="padding:8px 12px;border-radius:8px;border:1px solid ${sel ? 'var(--accent)' : 'var(--border)'};background:${sel ? 'var(--accent-soft)' : 'transparent'};cursor:pointer;transition:.15s">
       <div style="font-size:12px;font-weight:600">${name}</div>
       <div style="font-size:10.5px;color:var(--text-muted)">${date}${r.plano_escolhido ? ' · ' + r.plano_escolhido : ''}</div>
     </div>`;
   }).join('');
 }
 
-function _ctaSelectForm(id) {
-  _ctaFormResponse = _ctaAllFormResponses.find(r => r.id === id) || null;
+function _ctaFilterForm(val) { _ctaRenderFormList(val); }
+
+function _ctaPickForm(id) {
+  _ctaSelectedForm = _ctaAllFormResponses.find(r => r.id === id) || null;
   _ctaRenderFormList('');
-  const banner = document.getElementById('cta-selected-banner');
-  if (banner && _ctaFormResponse) {
-    banner.style.display = 'block';
-    banner.innerHTML = `✅ <strong>${_ctaFormResponse.nome_razao || _ctaFormResponse.title || 'Cliente'}</strong> — dados do formulário incluídos no contrato`;
+  const badge = document.getElementById('cta-client-badge');
+  if (badge && _ctaSelectedForm) {
+    badge.style.display = 'block';
+    badge.innerHTML = `✅ <strong>${_ctaSelectedForm.nome_razao || _ctaSelectedForm.title || 'Cliente'}</strong> — dados do formulário incluídos`;
   }
 }
 
 async function _ctaGenerate() {
   if (_ctaGenerating) return;
-  const ta = document.getElementById('cta-tmpl-active');
-  if (ta && _ctaActiveTemplateKey) _ctaTemplatesInMemory[_ctaActiveTemplateKey] = ta.value;
-
-  const servicos = [..._ctaSelectedServices];
-  const customServ = document.getElementById('cta-servico-custom')?.value.trim();
-  if (customServ) servicos.push(customServ);
-  if (!servicos.length) { addNotif('Selecione pelo menos um serviço', 'warn'); return; }
+  const servIds = [..._ctaSelectedSvcIds];
+  if (!servIds.length) { addNotif('Selecione pelo menos um serviço', 'warn'); return; }
 
   const btn = document.getElementById('cta-gen-btn');
   if (btn) { btn.disabled = true; btn.textContent = '⏳ Gerando contrato…'; }
   _ctaGenerating = true;
 
-  const labelMap = { trafego:'Tráfego Pago', gmb:'Google Meu Negócio', social:'Social Media / Conteúdo', sites:'Sites / Landing Pages', artes:'Criação de Artes', consultoria:'Consultoria' };
-
+  // Dados do cliente
   let clienteCtx = '';
-  if (_ctaFormResponse) {
-    const r = _ctaFormResponse;
-    clienteCtx = `\nDADOS DO CONTRATANTE:\nNome/Razão Social: ${r.nome_razao || '[NOME]'}\nNome Fantasia: ${r.nome_fantasia || '—'}\nCPF/CNPJ: ${r.cpf_cnpj || '[CPF/CNPJ]'}\nE-mail: ${r.email || '—'}\nWhatsApp: ${r.whatsapp || '—'}\nEndereço: ${r.endereco || '[ENDEREÇO]'}\nSegmento: ${r.segmento || '—'}\nServiço contratado: ${r.plano_escolhido || '—'}\nForma de pagamento: ${r.forma_pagamento || '—'}\nData início: ${r.data_inicio || '—'}`;
+  if (_ctaClientSource === 'base' && _ctaSelectedClient) {
+    const c = _ctaSelectedClient;
+    clienteCtx = `\nDADOS DO CONTRATANTE:\nNome: ${c.name}\nSegmento: ${c.segment || '—'}\nE-mail: ${c.email || '—'}\nWhatsApp: ${c.phone || '—'}`;
+  } else if (_ctaClientSource === 'form' && _ctaSelectedForm) {
+    const r = _ctaSelectedForm;
+    clienteCtx = `\nDADOS DO CONTRATANTE:\nNome/Razão Social: ${r.nome_razao || '[NOME]'}\nNome Fantasia: ${r.nome_fantasia || '—'}\nCPF/CNPJ: ${r.cpf_cnpj || '[CPF/CNPJ]'}\nE-mail: ${r.email || '—'}\nWhatsApp: ${r.whatsapp || '—'}\nEndereço: ${r.endereco || '[ENDEREÇO]'}\nSegmento: ${r.segmento || '—'}\nForma de pagamento: ${r.forma_pagamento || '—'}\nData início: ${r.data_inicio || '—'}`;
+  } else if (_ctaClientSource === 'manual') {
+    const nome  = document.getElementById('cta-m-nome')?.value.trim();
+    const doc   = document.getElementById('cta-m-doc')?.value.trim();
+    const email = document.getElementById('cta-m-email')?.value.trim();
+    const wpp   = document.getElementById('cta-m-wpp')?.value.trim();
+    const end   = document.getElementById('cta-m-end')?.value.trim();
+    clienteCtx = `\nDADOS DO CONTRATANTE:\nNome/Razão Social: ${nome || '[NOME]'}\nCPF/CNPJ: ${doc || '[CPF/CNPJ]'}\nE-mail: ${email || '—'}\nWhatsApp: ${wpp || '—'}\nEndereço: ${end || '[ENDEREÇO]'}`;
   }
 
+  // Templates dos serviços selecionados
   let templatesCtx = '';
-  servicos.forEach(key => {
-    const tmpl = _ctaTemplatesInMemory[key];
-    const label = labelMap[key] || key;
-    if (tmpl && tmpl.trim()) templatesCtx += `\n\n=== CONTRATO BASE — ${label.toUpperCase()} ===\n${tmpl.substring(0, 3500)}`;
+  let servicosList = '';
+  servIds.forEach(id => {
+    const tpl = _ctaTemplates.find(t => t.id === id);
+    if (!tpl) return;
+    servicosList += (servicosList ? ', ' : '') + tpl.name;
+    if (tpl.text && tpl.text.trim()) {
+      templatesCtx += `\n\n=== CONTRATO BASE — ${tpl.name.toUpperCase()} ===\n${tpl.text.substring(0, 3500)}`;
+    }
   });
 
   const valor    = document.getElementById('cta-valor')?.value.trim();
   const venc     = document.getElementById('cta-venc')?.value.trim();
   const vigencia = document.getElementById('cta-vigencia')?.value.trim();
   const obs      = document.getElementById('cta-obs')?.value.trim();
-  const servicosList = servicos.map(k => labelMap[k] || k).join(', ');
 
   const systemPrompt = `Você é redator jurídico especializado em contratos de marketing digital para a agência DigitalCreate.
 CONTRATADA (fixo): DigitalCreate — Agência de Marketing Digital. Responsável: Amanda Estren Silveira.
 Redija contratos profissionais em português formal, estruturados com cláusulas numeradas em MAIÚSCULAS.
-Use [CAMPO] para dados faltantes. Inclua sempre: objeto, obrigações, valor/pagamento, vigência, rescisão e assinaturas.`;
+Use [CAMPO] para dados faltantes. Inclua sempre: objeto, obrigações, valor/pagamento, vigência, rescisão e assinaturas.
+Quando houver múltiplos serviços, una-os em um único contrato padronizado com linguagem e cláusulas consistentes.`;
 
   const userMsg = `Redija o contrato de prestação de serviços:\nSERVIÇOS: ${servicosList}${valor ? '\nVALOR: ' + valor : ''}${venc ? '\nVENCIMENTO: ' + venc : ''}${vigencia ? '\nVIGÊNCIA: ' + vigencia : ''}${obs ? '\nOBSERVAÇÕES: ' + obs : ''}${clienteCtx}${templatesCtx || '\n(Use estrutura padrão profissional para agência de marketing digital)'}`;
 
@@ -9776,7 +9933,7 @@ Use [CAMPO] para dados faltantes. Inclua sempre: objeto, obrigações, valor/pag
     document.getElementById('cta-result-text').value = data.content;
     const wrap = document.getElementById('cta-result-wrap');
     if (wrap) { wrap.style.display = 'block'; setTimeout(() => wrap.scrollIntoView({ behavior: 'smooth' }), 100); }
-    addNotif('Contrato gerado!', 'success');
+    addNotif('Contrato gerado com sucesso!', 'success');
   } catch(e) {
     addNotif('Erro ao gerar: ' + e.message, 'error');
   }
