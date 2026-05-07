@@ -9770,7 +9770,7 @@ function _ctaSetSrc(src) {
   if (!panel) return;
 
   if (src === 'base') {
-    const clients = (window.clientsData || []).filter(c => !c.archived && c.name);
+    const clients = (clientsData || []).filter(c => !c.archived && c.nome);
     panel.innerHTML = `<input type="text" placeholder="🔍 Buscar cliente da base..." oninput="_ctaFilterBase(this.value)"
       style="width:100%;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:var(--font);font-size:12px;padding:7px 10px;outline:none;box-sizing:border-box;margin-bottom:8px">
       <div id="cta-base-list" style="display:flex;flex-direction:column;gap:5px;max-height:180px;overflow-y:auto"></div>`;
@@ -9796,7 +9796,7 @@ function _ctaSetSrc(src) {
 function _ctaRenderBaseList(clients, filter) {
   const el = document.getElementById('cta-base-list');
   if (!el) return;
-  const filtered = filter ? clients.filter(c => c.name.toLowerCase().includes(filter.toLowerCase())) : clients;
+  const filtered = filter ? clients.filter(c => (c.nome||'').toLowerCase().includes(filter.toLowerCase())) : clients;
   if (!filtered.length) {
     el.innerHTML = '<div style="text-align:center;padding:12px;font-size:12px;color:var(--text-muted)">Nenhum cliente encontrado.</div>';
     return;
@@ -9804,36 +9804,34 @@ function _ctaRenderBaseList(clients, filter) {
   el.innerHTML = filtered.map(c => {
     const sel = _ctaSelectedClient && _ctaSelectedClient.id === c.id;
     return `<div onclick="_ctaPickBase('${c.id}')" style="padding:8px 12px;border-radius:8px;border:1px solid ${sel ? 'var(--accent)' : 'var(--border)'};background:${sel ? 'var(--accent-soft)' : 'transparent'};cursor:pointer;transition:.15s">
-      <div style="font-size:12px;font-weight:600">${c.name}</div>
-      ${c.segment ? `<div style="font-size:10.5px;color:var(--text-muted)">${c.segment}</div>` : ''}
+      <div style="font-size:12px;font-weight:600">${c.nome}</div>
+      ${c.empresa ? `<div style="font-size:10.5px;color:var(--text-muted)">${c.empresa}</div>` : ''}
     </div>`;
   }).join('');
 }
 
 function _ctaFilterBase(val) {
-  const clients = (window.clientsData || []).filter(c => !c.archived && c.name);
+  const clients = (clientsData || []).filter(c => !c.archived && c.nome);
   _ctaRenderBaseList(clients, val);
 }
 
 function _ctaPickBase(id) {
-  _ctaSelectedClient = (window.clientsData || []).find(c => c.id === id) || null;
-  const clients = (window.clientsData || []).filter(c => !c.archived && c.name);
+  _ctaSelectedClient = (clientsData || []).find(c => c.id === id) || null;
+  const clients = (clientsData || []).filter(c => !c.archived && c.nome);
   _ctaRenderBaseList(clients, '');
   const badge = document.getElementById('cta-client-badge');
   if (badge && _ctaSelectedClient) {
     badge.style.display = 'block';
-    badge.innerHTML = `✅ <strong>${_ctaSelectedClient.name}</strong> selecionado`;
+    badge.innerHTML = `✅ <strong>${_ctaSelectedClient.nome}</strong> selecionado`;
   }
 }
 
 async function _ctaLoadFormResponses() {
   try {
-    const { query, collection, orderBy, limit, getDocs } = await import('https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js');
-    const q = query(collection(window._crmDb, 'briefings_contrato'), orderBy('submittedAt', 'desc'), limit(50));
-    const snap = await getDocs(q);
-    _ctaAllFormResponses = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const all = await window.loadBriefings();
+    _ctaAllFormResponses = all.filter(b => (b.type || 'trafego') === 'contrato');
   } catch(e) {
-    _ctaAllFormResponses = JSON.parse(localStorage.getItem('dc_briefings_contrato') || '[]');
+    _ctaAllFormResponses = [];
   }
   _ctaRenderFormList('');
 }
@@ -9884,7 +9882,7 @@ async function _ctaGenerate() {
   let clienteCtx = '';
   if (_ctaClientSource === 'base' && _ctaSelectedClient) {
     const c = _ctaSelectedClient;
-    clienteCtx = `\nDADOS DO CONTRATANTE:\nNome: ${c.name}\nSegmento: ${c.segment || '—'}\nE-mail: ${c.email || '—'}\nWhatsApp: ${c.phone || '—'}`;
+    clienteCtx = `\nDADOS DO CONTRATANTE:\nNome: ${c.nome || '[NOME]'}\nEmpresa: ${c.empresa || '—'}\nCPF/CNPJ: ${c.cpfCnpj || c.doc || '—'}\nE-mail: ${c.email || '—'}\nWhatsApp: ${c.whatsapp || c.fone || '—'}\nEndereço: ${c.endereco || '—'}`;
   } else if (_ctaClientSource === 'form' && _ctaSelectedForm) {
     const r = _ctaSelectedForm;
     clienteCtx = `\nDADOS DO CONTRATANTE:\nNome/Razão Social: ${r.nome_razao || '[NOME]'}\nNome Fantasia: ${r.nome_fantasia || '—'}\nCPF/CNPJ: ${r.cpf_cnpj || '[CPF/CNPJ]'}\nE-mail: ${r.email || '—'}\nWhatsApp: ${r.whatsapp || '—'}\nEndereço: ${r.endereco || '[ENDEREÇO]'}\nSegmento: ${r.segmento || '—'}\nForma de pagamento: ${r.forma_pagamento || '—'}\nData início: ${r.data_inicio || '—'}`;
