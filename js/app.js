@@ -9272,7 +9272,7 @@ async function _iaSend(text) {
   if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = '…'; }
 
   try {
-    const res = await fetch('/.netlify/functions/chat', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -10047,7 +10047,7 @@ async function _ctaCallAI(userMsg) {
   _ctaChatLoading = true;
   _ctaRenderChatMsgs();
   try {
-    const res = await fetch('/.netlify/functions/chat', {
+    const res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
