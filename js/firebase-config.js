@@ -624,3 +624,29 @@
     window._canTeam       = canTeam;
   }
   window.applyRoleRestrictions = applyRoleRestrictions;
+
+  // ── Calendário Semanal ────────────────────────────────────────────────────
+  window.saveCalTask = async (data) => {
+    try {
+      const ref = await addDoc(collection(db, 'crm_jornada_cal'), { ...data, createdAt: new Date().toISOString() });
+      return ref.id;
+    } catch(e) { console.error('saveCalTask:', e); throw e; }
+  };
+  window.loadCalTasks = async () => {
+    try {
+      const snap = await getDocs(collection(db, 'crm_jornada_cal'));
+      return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch(e) { console.error('loadCalTasks:', e); return []; }
+  };
+  window.updateCalTask = async (id, updates) => {
+    try {
+      const { updateDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      await updateDoc(doc(db, 'crm_jornada_cal', id), updates);
+    } catch(e) { console.error('updateCalTask:', e); throw e; }
+  };
+  window.deleteCalTask = async (id) => {
+    try {
+      const { deleteDoc } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+      await deleteDoc(doc(db, 'crm_jornada_cal', id));
+    } catch(e) { console.error('deleteCalTask:', e); throw e; }
+  };
