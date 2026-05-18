@@ -583,7 +583,7 @@
     } catch(e) { console.error('saveFormConfig:', e); return false; }
   };
 
-  const _NAV_KEYS = ['dashboard','crm','jornada','lembretes','clients','financeiro','prospeccao','docs','files','custom-forms','briefings-trafego','briefings-gmb','briefings-contrato','briefings-satisfacao','briefings-sites','ia','contratos-ia','drive'];
+  const _NAV_KEYS = ['dashboard','crm','jornada','lembretes','calendario','clients','financeiro','prospeccao','docs','files','custom-forms','briefings-trafego','briefings-gmb','briefings-contrato','briefings-satisfacao','briefings-sites','ia','contratos-ia','drive'];
   const _NAV_DEFAULTS = {
     financeiro: { gerente: true,  membro: false },
     drive:      { gerente: false, membro: false },

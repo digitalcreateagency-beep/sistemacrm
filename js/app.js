@@ -10151,6 +10151,7 @@ const _SETTINGS_NAV_ITEMS = [
     { key: 'crm',        label: '📋 CRM / Tarefas' },
     { key: 'jornada',    label: '🚀 Jornada' },
     { key: 'lembretes',  label: '🔔 Lembretes' },
+    { key: 'calendario', label: '📅 Calendário' },
   ]},
   { section: 'Gestão', items: [
     { key: 'clients',    label: '👥 Clientes' },
