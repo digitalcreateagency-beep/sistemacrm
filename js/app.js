@@ -1,4 +1,4 @@
-// ─── INITIAL DATA ─────────────────────────────────────────────────────────────
+﻿// ─── INITIAL DATA ─────────────────────────────────────────────────────────────
 const initialData = {
   amanda: {
     label: 'Gestora Amanda',
@@ -10278,194 +10278,205 @@ function _settingsToggle(key, role, val) {
   }, 800);
 }
 
+
 // ═══════════════════════════════════════════════════════════════════════════
-// CALENDÁRIO SEMANAL
+// CALENDÁRIO SEMANAL — v2 (multi-participantes, editar, widget flutuante)
 // ═══════════════════════════════════════════════════════════════════════════
 
 let _calTasks      = [];
-let _calWeekOffset = 0;   // 0 = semana atual, -1 = semana passada, +1 = próxima
-let _calModalState = {};  // estado do modal em edição
+let _calWeekOffset = 0;    // 0 = semana atual, -1 = passada, +1 = próxima
+let _calModalState = {};
+let _calEditingId  = null; // null = criar | 'id' = editar
 
 const _CAL_DAY_SHORT  = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
 const _CAL_DAY_FULL   = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
 const _CAL_MONTHS     = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const _CAL_MONTHS_ABR = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-const _CAL_COLORS     = [
-  '#7c5cfc','#06b6d4','#10b981','#f59e0b','#a855f7','#ef4444','#f97316','#6b7280'
+
+const _CAL_COLORS = [
+  // DigitalCreate brand
+  '#a760fd','#8f71fd','#6daffd','#65e7f3','#7c22b4','#3a2d94',
+  // Extended palette
+  '#7c5cfc','#06b6d4','#10b981','#f59e0b','#a855f7','#ef4444',
+  '#f97316','#ec4899','#84cc16','#14b8a6','#f43f5e','#0ea5e9',
+  '#6b7280','#d97706','#8b5cf6','#22d3ee','#4ade80','#fb923c',
+  '#e879f9','#34d399',
 ];
 
-// ── Helpers de data ────────────────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 function _calDateStr(d) { return d.toISOString().split('T')[0]; }
 
 function _calGetWeekDates(offset) {
   const now = new Date();
   const dow = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
-  monday.setHours(0, 0, 0, 0);
+  const mon = new Date(now);
+  mon.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
+  mon.setHours(0, 0, 0, 0);
   return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    return d;
+    const d = new Date(mon); d.setDate(mon.getDate() + i); return d;
   });
 }
 
 function _calTasksForDay(d) {
-  const dateStr = _calDateStr(d);
-  const dow = d.getDay();
+  const ds = _calDateStr(d), dow = d.getDay();
   return _calTasks.filter(t => {
-    if (t.recurrence === 'once')   return t.date === dateStr;
+    if (t.recurrence === 'once')   return t.date === ds;
     if (t.recurrence === 'weekly') return (t.days || []).includes(dow);
     return false;
   }).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
 }
 
-function _calIsDone(task, dateStr) {
-  return (task.completedDates || []).includes(dateStr);
-}
+function _calIsDone(task, dateStr) { return (task.completedDates || []).includes(dateStr); }
+function _calIsAdmin() { const r = window._userRole || 'membro'; return r === 'admin' || r === 'gerente'; }
 
-function _calIsAdmin() {
-  const r = window._userRole || 'membro';
-  return r === 'admin' || r === 'gerente';
+// Normaliza participantes — suporta formato novo (array) e legado (participantName)
+function _calGetParticipants(task) {
+  if (task.participants && task.participants.length > 0) return task.participants;
+  if (task.participantName) return [{ type: task.participantType || 'member', id: task.participantId || '', name: task.participantName }];
+  return [];
 }
 
 // ── Página principal ───────────────────────────────────────────────────────
 
 async function renderCalendarioPage() {
   const el = document.getElementById('main-content');
-  el.innerHTML = `<div style="padding:32px;text-align:center;color:var(--text-muted)">⏳ Carregando calendário...</div>`;
-  try { _calTasks = await window.loadCalTasks(); }
-  catch(e) { _calTasks = []; }
+  el.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-muted)">⏳ Carregando calendário...</div>';
+  try { _calTasks = await window.loadCalTasks(); } catch(e) { _calTasks = []; }
   _calRender();
+  _calUpdateFloating();
 }
 
 function _calRender() {
   const el = document.getElementById('main-content');
-  const isAdmin = _calIsAdmin();
-  const week    = _calGetWeekDates(_calWeekOffset);
-  const today   = new Date(); today.setHours(0,0,0,0);
+  if (!el) return;
+  const isAdmin  = _calIsAdmin();
+  const week     = _calGetWeekDates(_calWeekOffset);
+  const today    = new Date(); today.setHours(0, 0, 0, 0);
   const todayStr = _calDateStr(today);
+  const curUid   = window._userId || '';
 
-  // Rótulo da semana
   const ws = week[0], we = week[6];
-  const sameMonth = ws.getMonth() === we.getMonth();
-  const weekLabel = sameMonth
+  const weekLabel = ws.getMonth() === we.getMonth()
     ? `${ws.getDate()} – ${we.getDate()} de ${_CAL_MONTHS[we.getMonth()]} ${we.getFullYear()}`
     : `${ws.getDate()} ${_CAL_MONTHS_ABR[ws.getMonth()]} – ${we.getDate()} ${_CAL_MONTHS_ABR[we.getMonth()]} ${we.getFullYear()}`;
 
-  // Tarefas de hoje visíveis para o usuário
   const todayDayObj = week.find(d => _calDateStr(d) === todayStr);
   const todayTasks  = todayDayObj
     ? _calTasksForDay(todayDayObj).filter(t => t.visibility === 'public' || isAdmin)
     : [];
 
-  el.innerHTML = `
-<div style="padding:20px 22px 40px;max-width:1300px">
-
-  <!-- ── CABEÇALHO ──────────────────────────────────────── -->
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
-    <div style="display:flex;align-items:center;gap:10px">
-      <button onclick="_calPrev()" class="btn btn-ghost" style="padding:6px 14px">←</button>
-      <span style="font-size:14px;font-weight:700;color:var(--text-primary);min-width:200px;text-align:center">${weekLabel}</span>
-      <button onclick="_calNext()" class="btn btn-ghost" style="padding:6px 14px">→</button>
-      ${_calWeekOffset !== 0 ? `<button onclick="_calGoToday()" class="btn btn-ghost" style="font-size:11px;color:var(--accent);padding:5px 10px">Hoje</button>` : ''}
-    </div>
-    <button onclick="_calOpenModal(null)" class="btn btn-primary" style="gap:6px">
-      + Nova Tarefa
-    </button>
-  </div>
-
-  <!-- ── RESUMO DO DIA ──────────────────────────────────── -->
-  ${todayDayObj ? `
-  <div style="background:var(--bg-card);border:1.5px solid var(--accent);border-radius:14px;padding:16px 20px;margin-bottom:20px">
-    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">
-      ☀️ Hoje — ${_CAL_DAY_FULL[todayDayObj.getDay()]}, ${todayDayObj.getDate()} de ${_CAL_MONTHS[todayDayObj.getMonth()]}
-    </div>
-    ${todayTasks.length === 0
-      ? `<span style="color:var(--text-muted);font-size:13px">Sem tarefas para hoje 🎉</span>`
-      : `<div style="display:flex;flex-wrap:wrap;gap:8px">${todayTasks.map(t => _calDayChip(t, todayStr)).join('')}</div>`}
-  </div>` : ''}
-
-  <!-- ── GRADE SEMANAL ──────────────────────────────────── -->
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
-    ${week.map(d => {
-      const dStr  = _calDateStr(d);
-      const isT   = dStr === todayStr;
-      const isPast = d < today;
-      const tasks = _calTasksForDay(d).filter(t => t.visibility === 'public' || isAdmin);
-      return `
+  const dayCols = week.map(d => {
+    const dStr  = _calDateStr(d);
+    const isT   = dStr === todayStr;
+    const isPast = d < today;
+    const tasks = _calTasksForDay(d).filter(t => t.visibility === 'public' || isAdmin);
+    return `
       <div style="background:var(--bg-card);border:1.5px solid ${isT ? 'var(--accent)' : 'var(--border)'};border-radius:13px;overflow:hidden;min-height:160px;display:flex;flex-direction:column">
         <div style="padding:9px 10px;text-align:center;background:${isT ? 'var(--accent)' : 'transparent'};border-bottom:1px solid ${isT ? 'transparent' : 'var(--border)'}">
           <div style="font-size:9px;font-weight:700;letter-spacing:.7px;color:${isT ? 'rgba(255,255,255,.8)' : 'var(--text-muted)'};text-transform:uppercase">${_CAL_DAY_SHORT[d.getDay()]}</div>
           <div style="font-size:22px;font-weight:800;line-height:1.1;color:${isT ? '#fff' : isPast ? 'var(--text-muted)' : 'var(--text-primary)'}">${d.getDate()}</div>
         </div>
         <div style="padding:7px;flex:1;display:flex;flex-direction:column;gap:5px">
-          ${tasks.map(t => _calCard(t, dStr, isAdmin)).join('')}
+          ${tasks.map(t => _calCard(t, dStr, isAdmin, curUid)).join('')}
           <button onclick="_calOpenModal('${dStr}')"
             style="margin-top:auto;width:100%;background:transparent;border:1px dashed var(--border);border-radius:7px;padding:4px;cursor:pointer;color:var(--text-muted);font-size:10px;transition:.15s"
             onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'"
             onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-muted)'">+ add</button>
         </div>
       </div>`;
-    }).join('')}
+  }).join('');
+
+  el.innerHTML = `
+<div style="padding:20px 22px 60px;max-width:1300px">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button onclick="_calPrev()" class="btn btn-ghost" style="padding:6px 14px">←</button>
+      <span style="font-size:14px;font-weight:700;color:var(--text-primary);min-width:200px;text-align:center">${weekLabel}</span>
+      <button onclick="_calNext()" class="btn btn-ghost" style="padding:6px 14px">→</button>
+      ${_calWeekOffset !== 0 ? '<button onclick="_calGoToday()" class="btn btn-ghost" style="font-size:11px;color:var(--accent);padding:5px 10px">Hoje</button>' : ''}
+    </div>
+    <button onclick="_calOpenModal(null)" class="btn btn-primary">+ Nova Tarefa</button>
   </div>
+
+  ${todayDayObj ? `
+  <div style="background:var(--bg-card);border:1.5px solid var(--accent);border-radius:14px;padding:16px 20px;margin-bottom:20px">
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.7px;margin-bottom:10px">
+      ☀️ Hoje — ${_CAL_DAY_FULL[todayDayObj.getDay()]}, ${todayDayObj.getDate()} de ${_CAL_MONTHS[todayDayObj.getMonth()]}
+    </div>
+    ${todayTasks.length === 0
+      ? '<span style="color:var(--text-muted);font-size:13px">Sem tarefas para hoje 🎉</span>'
+      : '<div style="display:flex;flex-wrap:wrap;gap:8px">' + todayTasks.map(t => _calDayChip(t, todayStr)).join('') + '</div>'}
+  </div>` : ''}
+
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">${dayCols}</div>
 </div>
 
-<!-- ── MODAL ──────────────────────────────────────────── -->
 <div id="cal-modal" onclick="if(event.target===this)_calCloseModal()"
-  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:16px">
-  <div id="cal-modal-inner" style="background:#16162a;border:1px solid var(--border);border-radius:18px;width:100%;max-width:490px;max-height:92vh;overflow-y:auto">
-  </div>
+  style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;align-items:center;justify-content:center;padding:16px">
+  <div id="cal-modal-inner" style="background:#16162a;border:1px solid rgba(167,96,253,.35);border-radius:18px;width:100%;max-width:530px;max-height:92vh;overflow-y:auto"></div>
 </div>`;
 }
 
-// ── Cards do calendário ────────────────────────────────────────────────────
+// ── Cards ──────────────────────────────────────────────────────────────────
 
-function _calCard(task, dateStr, isAdmin) {
-  const done  = _calIsDone(task, dateStr);
-  const color = task.color || '#7c5cfc';
-  const linkIcon = task.linkType === 'maps' ? '📍' : task.linkType === 'meet' ? '📹' : '🔗';
+function _calCard(task, dateStr, isAdmin, curUid) {
+  const done    = _calIsDone(task, dateStr);
+  const color   = task.color || '#a760fd';
+  const pts     = _calGetParticipants(task);
+  const canEdit = isAdmin || task.createdBy === curUid;
+
+  const ptHtml = pts.length > 0
+    ? pts.slice(0, 2).map(p =>
+        `<span style="font-size:9px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:58px">${p.type === 'client' ? '👥' : '👤'}${p.name.split(' ')[0]}</span>`
+      ).join('') + (pts.length > 2 ? `<span style="font-size:9px;color:var(--text-muted)">+${pts.length - 2}</span>` : '')
+    : '';
 
   return `
-<div onclick="_calToggle('${task.id}','${dateStr}',${done})"
-  style="background:${done ? 'transparent' : color+'14'};border:1px solid ${done ? 'var(--border)' : color+'55'};border-left:3px solid ${done ? 'var(--border)' : color};border-radius:8px;padding:6px 8px;cursor:pointer;transition:.15s;opacity:${done ? '.5' : '1'}">
-  <div style="display:flex;align-items:flex-start;gap:5px">
-    <span style="font-size:11px;flex-shrink:0;margin-top:1px">${done ? '✅' : '⬜'}</span>
-    <span style="font-size:11px;font-weight:600;color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${done ? 'text-decoration:line-through' : ''}">${task.title}</span>
-    ${isAdmin ? `<span onclick="event.stopPropagation();_calDelete('${task.id}')" style="font-size:10px;color:var(--text-muted);cursor:pointer;padding:0 2px;flex-shrink:0" title="Excluir">✕</span>` : ''}
+<div style="background:${done ? 'transparent' : color + '18'};border:1px solid ${done ? 'var(--border)' : color + '55'};border-left:3px solid ${done ? 'var(--border)' : color};border-radius:8px;padding:6px 8px;transition:.15s;opacity:${done ? .5 : 1}">
+  <div style="display:flex;align-items:flex-start;gap:4px">
+    <span onclick="_calToggle('${task.id}','${dateStr}',${done})" style="font-size:11px;flex-shrink:0;cursor:pointer;margin-top:1px">${done ? '✅' : '⬜'}</span>
+    <span onclick="_calToggle('${task.id}','${dateStr}',${done})" style="font-size:11px;font-weight:600;color:var(--text-primary);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;${done ? 'text-decoration:line-through' : ''}">${task.title}</span>
+    <div style="display:flex;gap:2px;flex-shrink:0">
+      ${canEdit ? `<span onclick="event.stopPropagation();_calOpenEditModal('${task.id}')" style="font-size:10px;color:var(--accent);cursor:pointer;padding:0 2px;line-height:1.5" title="Editar">✏️</span>` : ''}
+      ${isAdmin ? `<span onclick="event.stopPropagation();_calDelete('${task.id}')" style="font-size:11px;color:var(--text-muted);cursor:pointer;padding:0 2px;line-height:1.5" title="Excluir">✕</span>` : ''}
+    </div>
   </div>
-  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:3px">
-    ${task.time ? `<span style="font-size:9px;color:var(--text-muted)">🕐 ${task.time}</span>` : ''}
-    ${task.participantName ? `<span style="font-size:9px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px">👤 ${task.participantName}</span>` : ''}
-    ${(task.links||[]).map(l => `<a href="${l.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--accent);text-decoration:none">${l.type==='maps'?'📍':l.type==='meet'?'📹':'🔗'}</a>`).join('')}
-    ${task.visibility === 'admin' ? `<span style="font-size:8px;background:rgba(239,68,68,.15);color:#ef4444;padding:1px 4px;border-radius:3px;font-weight:700">🔒</span>` : ''}
-    ${task.recurrence === 'weekly' ? `<span style="font-size:9px;color:var(--text-muted)">🔁</span>` : ''}
+  <div style="display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:3px">
+    ${task.time ? `<span style="font-size:9px;color:var(--text-muted)">🕐${task.time}</span>` : ''}
+    ${ptHtml}
+    ${(task.links || []).map(l => `<a href="${l.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--accent);text-decoration:none">${l.type === 'maps' ? '📍' : l.type === 'meet' ? '📹' : '🔗'}</a>`).join('')}
+    ${task.visibility === 'admin' ? '<span style="font-size:8px;background:rgba(239,68,68,.15);color:#ef4444;padding:1px 4px;border-radius:3px;font-weight:700">🔒</span>' : ''}
+    ${task.recurrence === 'weekly' ? '<span style="font-size:9px;color:var(--text-muted)">🔁</span>' : ''}
   </div>
 </div>`;
 }
 
 function _calDayChip(task, dateStr) {
   const done  = _calIsDone(task, dateStr);
-  const color = task.color || '#7c5cfc';
+  const color = task.color || '#a760fd';
+  const pts   = _calGetParticipants(task);
+  const ptStr = pts.length > 0
+    ? `<span style="font-size:10px;color:var(--text-muted)">· ${pts.map(p => p.name.split(' ')[0]).slice(0, 2).join(', ')}${pts.length > 2 ? '...' : ''}</span>`
+    : '';
   return `
 <div onclick="_calToggle('${task.id}','${dateStr}',${done})"
-  style="display:inline-flex;align-items:center;gap:6px;background:${done ? 'transparent' : color+'14'};border:1px solid ${done ? 'var(--border)' : color+'55'};border-radius:20px;padding:5px 12px;cursor:pointer;opacity:${done ? '.5' : '1'};transition:.15s">
+  style="display:inline-flex;align-items:center;gap:6px;background:${done ? 'transparent' : color + '18'};border:1px solid ${done ? 'var(--border)' : color + '55'};border-radius:20px;padding:5px 12px;cursor:pointer;opacity:${done ? .5 : 1};transition:.15s">
   <span>${done ? '✅' : '⬜'}</span>
   <span style="font-size:12px;font-weight:600;${done ? 'text-decoration:line-through' : ''}">${task.title}</span>
   ${task.time ? `<span style="font-size:10px;color:var(--text-muted)">· ${task.time}</span>` : ''}
-  ${task.participantName ? `<span style="font-size:10px;color:var(--text-muted)">· 👤 ${task.participantName}</span>` : ''}
-  ${(task.links||[]).map(l => `<a href="${l.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--accent)">${l.type==='maps'?'📍':l.type==='meet'?'📹':'🔗'}</a>`).join('')}
+  ${ptStr}
+  ${(task.links || []).map(l => `<a href="${l.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--accent)">${l.type === 'maps' ? '📍' : l.type === 'meet' ? '📹' : '🔗'}</a>`).join('')}
 </div>`;
 }
 
 // ── Navegação da semana ────────────────────────────────────────────────────
 
-function _calPrev()     { _calWeekOffset--; _calRender(); }
-function _calNext()     { _calWeekOffset++; _calRender(); }
-function _calGoToday()  { _calWeekOffset = 0; _calRender(); }
+function _calPrev()    { _calWeekOffset--; _calRender(); }
+function _calNext()    { _calWeekOffset++; _calRender(); }
+function _calGoToday() { _calWeekOffset = 0; _calRender(); }
 
-// ── Marcar concluída ───────────────────────────────────────────────────────
+// ── Toggle concluída ───────────────────────────────────────────────────────
 
 async function _calToggle(taskId, dateStr, wasDone) {
   const task = _calTasks.find(t => t.id === taskId);
@@ -10475,6 +10486,7 @@ async function _calToggle(taskId, dateStr, wasDone) {
     : [...(task.completedDates || []), dateStr];
   task.completedDates = dates;
   _calRender();
+  _calUpdateFloating();
   try { await window.updateCalTask(taskId, { completedDates: dates }); }
   catch(e) { addNotif('Erro ao atualizar tarefa', 'error'); }
 }
@@ -10485,123 +10497,152 @@ async function _calDelete(id) {
   if (!confirm('Excluir esta tarefa permanentemente?')) return;
   _calTasks = _calTasks.filter(t => t.id !== id);
   _calRender();
+  _calUpdateFloating();
   try { await window.deleteCalTask(id); }
   catch(e) { addNotif('Erro ao excluir', 'error'); }
 }
 
-// ── Modal: abrir ───────────────────────────────────────────────────────────
+// ── Modal: abrir/fechar ────────────────────────────────────────────────────
 
 function _calOpenModal(defaultDate) {
-  const isAdmin = _calIsAdmin();
-
+  _calEditingId = null;
   _calModalState = {
-    recurrence: 'once',
-    participantType: 'none',
-    links: [],
-    visibility: 'public',
-    color: _CAL_COLORS[0],
-    days: [],
+    recurrence:   'once',
+    participants: [],
+    links:        [],
+    visibility:   'public',
+    color:        _CAL_COLORS[0],
+    days:         [],
   };
+  _calBuildModal(defaultDate || _calDateStr(new Date()), null);
+}
 
-  const colorDots = _CAL_COLORS.map((c, i) =>
-    `<div data-color="${c}" onclick="_calPickColor('${c}',this)"
-      style="width:24px;height:24px;border-radius:50%;background:${c};cursor:pointer;border:2px solid ${i===0?'#fff':'transparent'};transition:.15s;flex-shrink:0"></div>`
-  ).join('');
+function _calOpenEditModal(taskId) {
+  const task = _calTasks.find(t => t.id === taskId);
+  if (!task) return;
+  _calEditingId = taskId;
+  _calModalState = {
+    recurrence:   task.recurrence || 'once',
+    participants: _calGetParticipants(task).map(p => ({ ...p })),
+    links:        (task.links || []).map(l => ({ ...l })),
+    visibility:   task.visibility || 'public',
+    color:        task.color || _CAL_COLORS[0],
+    days:         [...(task.days || [])],
+  };
+  _calBuildModal(task.date || _calDateStr(new Date()), task);
+}
+
+function _calBuildModal(defaultDate, editTask) {
+  const isAdmin = _calIsAdmin();
+  const isEdit  = !!_calEditingId;
+  const st      = _calModalState;
+
+  const colorDots = _CAL_COLORS.map(c => {
+    const sel = c === st.color;
+    return `<div data-color="${c}" onclick="_calPickColor('${c}',this)" title="${c}"
+      style="width:22px;height:22px;border-radius:50%;background:${c};cursor:pointer;border:2.5px solid ${sel ? '#fff' : 'transparent'};transition:.15s;flex-shrink:0"></div>`;
+  }).join('');
+
+  // Ensure modal container exists (needed when called from floating widget on non-calendar pages)
+  let modalEl = document.getElementById('cal-modal');
+  if (!modalEl) {
+    modalEl = document.createElement('div');
+    modalEl.id = 'cal-modal';
+    modalEl.onclick = e => { if (e.target === modalEl) _calCloseModal(); };
+    modalEl.style.cssText = 'display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:2000;align-items:center;justify-content:center;padding:16px';
+    const inner = document.createElement('div');
+    inner.id = 'cal-modal-inner';
+    inner.style.cssText = 'background:#16162a;border:1px solid rgba(167,96,253,.35);border-radius:18px;width:100%;max-width:530px;max-height:92vh;overflow-y:auto';
+    modalEl.appendChild(inner);
+    document.body.appendChild(modalEl);
+  }
+
+  const dayBtns = [['Dom',0],['Seg',1],['Ter',2],['Qua',3],['Qui',4],['Sex',5],['S\xE1b',6]].map(([n,v]) => {
+    const sel = st.days.includes(v);
+    return `<div onclick="_calToggleDay(${v},this)" data-dow="${v}"
+      style="padding:7px 11px;border-radius:8px;border:1px solid ${sel ? 'var(--accent)' : 'var(--border)'};cursor:pointer;font-size:11px;font-weight:700;color:${sel ? '#fff' : 'var(--text-muted)'};background:${sel ? 'var(--accent)' : 'transparent'};transition:.15s;user-select:none">${n}</div>`;
+  }).join('');
+
+  const iStyle = 'width:100%;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit;box-sizing:border-box';
 
   document.getElementById('cal-modal-inner').innerHTML = `
 <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
-  <div style="font-size:15px;font-weight:700">📅 Nova Tarefa</div>
-  <button onclick="_calCloseModal()" style="background:transparent;border:none;color:var(--text-muted);font-size:20px;cursor:pointer;line-height:1">×</button>
+  <div style="font-size:15px;font-weight:700">📅 ${isEdit ? 'Editar Tarefa' : 'Nova Tarefa'}</div>
+  <button onclick="_calCloseModal()" style="background:transparent;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;line-height:1">\xD7</button>
 </div>
 <div style="padding:18px 22px;display:flex;flex-direction:column;gap:16px">
 
-  <!-- Título -->
   <div>
-    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Título *</div>
-    <input id="cal-f-title" type="text" placeholder="Ex: Reunião com cliente, Post Instagram, Análise de métricas..."
-      style="width:100%;background:var(--bg-input,var(--bg-card));border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit">
+    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">T\xEDtulo *</div>
+    <input id="cal-f-title" type="text" value="${isEdit ? (editTask.title || '').replace(/"/g, '&quot;') : ''}"
+      placeholder="Ex: Reuni\xE3o com cliente, Post Instagram..."
+      style="${iStyle}">
   </div>
 
-  <!-- Quando -->
   <div>
     <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Quando acontece?</div>
     <div style="display:flex;gap:8px;margin-bottom:10px">
-      <button id="cal-r-once"   onclick="_calSetRec('once')"   class="btn btn-primary"  style="flex:1;font-size:12px;padding:7px 4px">📅 Data específica</button>
-      <button id="cal-r-weekly" onclick="_calSetRec('weekly')" class="btn btn-ghost" style="flex:1;font-size:12px;padding:7px 4px">🔁 Toda semana</button>
+      <button id="cal-r-once"   onclick="_calSetRec('once')"   class="${st.recurrence === 'once' ? 'btn btn-primary' : 'btn btn-ghost'}"   style="flex:1;font-size:12px;padding:7px 4px">📅 Data espec\xEDfica</button>
+      <button id="cal-r-weekly" onclick="_calSetRec('weekly')" class="${st.recurrence === 'weekly' ? 'btn btn-primary' : 'btn btn-ghost'}" style="flex:1;font-size:12px;padding:7px 4px">🔁 Toda semana</button>
     </div>
-    <div id="cal-panel-once">
-      <input id="cal-f-date" type="date" value="${defaultDate || _calDateStr(new Date())}"
-        style="background:var(--bg-input,var(--bg-card));border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;width:100%">
+    <div id="cal-panel-once" style="${st.recurrence !== 'once' ? 'display:none' : ''}">
+      <input id="cal-f-date" type="date" value="${defaultDate}" style="${iStyle}">
     </div>
-    <div id="cal-panel-weekly" style="display:none">
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
-        ${[['Dom',0],['Seg',1],['Ter',2],['Qua',3],['Qui',4],['Sex',5],['Sáb',6]].map(([n,v]) =>
-          `<div onclick="_calToggleDay(${v},this)" data-dow="${v}"
-            style="padding:7px 11px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:11px;font-weight:700;color:var(--text-muted);transition:.15s;user-select:none">${n}</div>`
-        ).join('')}
-      </div>
+    <div id="cal-panel-weekly" style="${st.recurrence !== 'weekly' ? 'display:none' : ''}">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${dayBtns}</div>
     </div>
   </div>
 
-  <!-- Horário -->
   <div>
-    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Horário</div>
-    <input id="cal-f-time" type="time"
-      style="background:var(--bg-input,var(--bg-card));border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;width:160px">
+    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Hor\xE1rio</div>
+    <input id="cal-f-time" type="time" value="${isEdit ? (editTask.time || '') : ''}"
+      style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;width:160px">
   </div>
 
-  <!-- Com quem -->
   <div>
-    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Com quem? (opcional)</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <button id="cal-pt-none"   onclick="_calSetPt('none')"   class="btn btn-primary" style="font-size:11px;padding:5px 12px">— Ninguém</button>
-      <button id="cal-pt-client" onclick="_calSetPt('client')" class="btn btn-ghost"   style="font-size:11px;padding:5px 12px">👥 Cliente</button>
-      <button id="cal-pt-member" onclick="_calSetPt('member')" class="btn btn-ghost"   style="font-size:11px;padding:5px 12px">👤 Membro</button>
-    </div>
-    <div id="cal-panel-pt" style="display:none">
-      <input id="cal-f-ptname" type="text" placeholder="Nome do participante..."
-        style="width:100%;background:var(--bg-input,var(--bg-card));border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit">
-    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Com quem? <span style="font-weight:400;text-transform:none;font-size:9px;letter-spacing:0">(selecione v\xE1rios)</span></div>
+    <div id="cal-pt-chips" style="display:flex;flex-wrap:wrap;gap:5px;min-height:4px;margin-bottom:8px"></div>
+    <input id="cal-pt-search" type="text" placeholder="🔍 Buscar clientes ou membros..." oninput="_calFilterAllPt(this.value)"
+      style="${iStyle};margin-bottom:6px">
+    <div id="cal-pt-list" style="max-height:150px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px"></div>
   </div>
 
-  <!-- Links (múltiplos) -->
   <div>
     <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Links de acesso (opcional)</div>
     <div id="cal-links-list" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
     <button onclick="_calAddLink()" class="btn btn-ghost" style="font-size:11px;padding:5px 14px;width:100%;border-style:dashed">+ Adicionar link</button>
   </div>
 
-  <!-- Visibilidade -->
   <div>
     <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Visibilidade</div>
     <div style="display:flex;gap:8px;margin-bottom:6px">
-      <button id="cal-vis-public" onclick="_calSetVis('public')" class="btn btn-primary" style="flex:1;font-size:12px;padding:7px">👁️ Pública</button>
-      ${isAdmin ? `<button id="cal-vis-admin" onclick="_calSetVis('admin')" class="btn btn-ghost" style="flex:1;font-size:12px;padding:7px">🔒 Só Admins/Gerentes</button>` : ''}
+      <button id="cal-vis-public" onclick="_calSetVis('public')" class="${st.visibility === 'public' ? 'btn btn-primary' : 'btn btn-ghost'}" style="flex:1;font-size:12px;padding:7px">👁️ P\xFAblica</button>
+      ${isAdmin ? `<button id="cal-vis-admin" onclick="_calSetVis('admin')" class="${st.visibility === 'admin' ? 'btn btn-primary' : 'btn btn-ghost'}" style="flex:1;font-size:12px;padding:7px">🔒 S\xF3 Admins</button>` : ''}
     </div>
-    <div id="cal-vis-desc" style="font-size:10px;color:var(--text-muted)">Todos os membros veem esta tarefa e quando for concluída.</div>
+    <div id="cal-vis-desc" style="font-size:10px;color:var(--text-muted)">${st.visibility === 'public' ? 'Todos os membros v\xEAem esta tarefa.' : 'Apenas admins e gerentes v\xEAem esta tarefa.'}</div>
   </div>
 
-  <!-- Cor -->
   <div>
     <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Cor da tarefa</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap" id="cal-color-dots">${colorDots}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap" id="cal-color-dots">${colorDots}</div>
   </div>
 
-  <!-- Descrição -->
   <div>
-    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Observações (opcional)</div>
-    <textarea id="cal-f-desc" rows="2" placeholder="Detalhes, links de referência, notas..."
-      style="width:100%;background:var(--bg-input,var(--bg-card));border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;resize:vertical;font-family:inherit"></textarea>
+    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Observa\xE7\xF5es (opcional)</div>
+    <textarea id="cal-f-desc" rows="2" placeholder="Detalhes, notas..."
+      style="${iStyle.replace('border-radius:9px', 'border-radius:9px;resize:vertical')}">${isEdit ? (editTask.description || '') : ''}</textarea>
   </div>
 
 </div>
 <div style="padding:14px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end">
   <button onclick="_calCloseModal()" class="btn btn-ghost">Cancelar</button>
-  <button onclick="_calSave()" class="btn btn-primary" id="cal-save-btn">✔ Salvar Tarefa</button>
+  <button onclick="_calSave()" class="btn btn-primary" id="cal-save-btn">${isEdit ? '✔ Salvar Altera\xE7\xF5es' : '✔ Criar Tarefa'}</button>
 </div>`;
 
-  const modal = document.getElementById('cal-modal');
-  modal.style.display = 'flex';
+  _calBuildPtList('');
+  _calRenderPtChips();
+  _calRenderLinksList();
+  modalEl.style.display = 'flex';
   setTimeout(() => document.getElementById('cal-f-title')?.focus(), 50);
 }
 
@@ -10610,14 +10651,85 @@ function _calCloseModal() {
   if (m) m.style.display = 'none';
 }
 
-// ── Modal: controles internos ──────────────────────────────────────────────
+// ── Participantes multi-select ─────────────────────────────────────────────
+
+function _calBuildPtList(query) {
+  const el = document.getElementById('cal-pt-list');
+  if (!el) return;
+
+  let items = [];
+  (clientsData || []).filter(c => !c.archived && c.nome).forEach(c =>
+    items.push({ type: 'client', id: c.id || c.nome, name: c.nome + (c.empresa ? ' — ' + c.empresa : '') })
+  );
+  (teamMembers || []).forEach(m =>
+    items.push({ type: 'member', id: m.uid || m.key || m.label, name: m.label || m.name })
+  );
+  if (window._allUsers) {
+    window._allUsers.forEach(u => {
+      if (!items.find(i => i.id === u.uid))
+        items.push({ type: 'member', id: u.uid, name: u.name || u.email });
+    });
+  }
+
+  const q        = query.toLowerCase();
+  const filtered = q ? items.filter(it => it.name.toLowerCase().includes(q)) : items;
+
+  if (!filtered.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--text-muted);padding:8px 10px">Nenhum resultado</div>';
+    return;
+  }
+
+  el.innerHTML = filtered.map(it => {
+    const sel      = _calModalState.participants.some(p => p.id === it.id);
+    const safeName = it.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return `
+    <div onclick="_calTogglePt('${it.id}','${safeName}','${it.type}',this)" data-id="${it.id}"
+      style="padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:8px;background:${sel ? 'rgba(167,96,253,.15)' : 'transparent'};border:1px solid ${sel ? 'var(--accent)' : 'transparent'};transition:.12s">
+      <span style="font-size:13px;flex-shrink:0;width:18px;text-align:center">${sel ? '✅' : it.type === 'client' ? '👥' : '👤'}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${sel ? 'var(--accent)' : 'var(--text-primary)'}">${it.name}</span>
+      <span style="font-size:9px;padding:2px 6px;border-radius:4px;background:${it.type === 'client' ? 'rgba(101,231,243,.1)' : 'rgba(167,96,253,.1)'};color:${it.type === 'client' ? '#65e7f3' : 'var(--accent)'};font-weight:700">${it.type === 'client' ? 'CLIENTE' : 'MEMBRO'}</span>
+    </div>`;
+  }).join('');
+}
+
+function _calFilterAllPt(q) { _calBuildPtList(q); }
+
+function _calTogglePt(id, name, type) {
+  const idx = _calModalState.participants.findIndex(p => p.id === id);
+  if (idx >= 0) _calModalState.participants.splice(idx, 1);
+  else _calModalState.participants.push({ type, id, name });
+  _calRenderPtChips();
+  _calBuildPtList(document.getElementById('cal-pt-search')?.value || '');
+}
+
+function _calRenderPtChips() {
+  const el = document.getElementById('cal-pt-chips');
+  if (!el) return;
+  el.innerHTML = _calModalState.participants.map(p => `
+    <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(167,96,253,.15);border:1px solid var(--accent);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--accent)">
+      ${p.type === 'client' ? '👥' : '👤'} ${p.name.split(' — ')[0].split(' ').slice(0, 2).join(' ')}
+      <span onclick="_calRemovePt('${p.id}')" style="cursor:pointer;font-size:15px;line-height:1;margin-left:2px">\xD7</span>
+    </div>`).join('');
+}
+
+function _calRemovePt(id) {
+  _calModalState.participants = _calModalState.participants.filter(p => p.id !== id);
+  _calRenderPtChips();
+  _calBuildPtList(document.getElementById('cal-pt-search')?.value || '');
+}
+
+// ── Modal controles ────────────────────────────────────────────────────────
 
 function _calSetRec(type) {
   _calModalState.recurrence = type;
-  document.getElementById('cal-panel-once').style.display   = type === 'once'   ? '' : 'none';
-  document.getElementById('cal-panel-weekly').style.display = type === 'weekly' ? '' : 'none';
-  document.getElementById('cal-r-once').className   = type === 'once'   ? 'btn btn-primary' : 'btn btn-ghost';
-  document.getElementById('cal-r-weekly').className = type === 'weekly' ? 'btn btn-primary' : 'btn btn-ghost';
+  const pO = document.getElementById('cal-panel-once');
+  const pW = document.getElementById('cal-panel-weekly');
+  const bO = document.getElementById('cal-r-once');
+  const bW = document.getElementById('cal-r-weekly');
+  if (pO) pO.style.display = type === 'once'   ? '' : 'none';
+  if (pW) pW.style.display = type === 'weekly' ? '' : 'none';
+  if (bO) bO.className = type === 'once'   ? 'btn btn-primary' : 'btn btn-ghost';
+  if (bW) bW.className = type === 'weekly' ? 'btn btn-primary' : 'btn btn-ghost';
 }
 
 function _calToggleDay(num, el) {
@@ -10625,93 +10737,37 @@ function _calToggleDay(num, el) {
   const idx  = days.indexOf(num);
   if (idx >= 0) {
     days.splice(idx, 1);
-    el.style.background   = 'transparent';
-    el.style.color        = 'var(--text-muted)';
-    el.style.borderColor  = 'var(--border)';
+    el.style.background  = 'transparent';
+    el.style.color       = 'var(--text-muted)';
+    el.style.borderColor = 'var(--border)';
   } else {
     days.push(num);
-    el.style.background   = 'var(--accent)';
-    el.style.color        = '#fff';
-    el.style.borderColor  = 'var(--accent)';
+    el.style.background  = 'var(--accent)';
+    el.style.color       = '#fff';
+    el.style.borderColor = 'var(--accent)';
   }
 }
 
-function _calSetPt(type) {
-  _calModalState.participantType = type;
-  _calModalState.participantId   = null;
-  _calModalState.participantName = '';
-  ['none','client','member'].forEach(t => {
-    const b = document.getElementById('cal-pt-' + t);
-    if (b) b.className = t === type ? 'btn btn-primary' : 'btn btn-ghost';
-  });
-  const panel = document.getElementById('cal-panel-pt');
-  if (!panel) return;
-  if (type === 'none') { panel.innerHTML = ''; panel.style.display = 'none'; return; }
-  panel.style.display = '';
-
-  // Monta lista de opções
-  let items = [];
-  if (type === 'client') {
-    items = (clientsData || [])
-      .filter(c => !c.archived && c.nome)
-      .map(c => ({ id: c.id || c.nome, name: c.nome + (c.empresa ? ` — ${c.empresa}` : '') }));
-  } else {
-    items = (teamMembers || [])
-      .map(m => ({ id: m.uid || m.key || m.label, name: m.label || m.name }));
-    // Também traz usuários reais do Firebase se disponível
-    if (window._allUsers) {
-      window._allUsers.forEach(u => {
-        if (!items.find(i => i.id === u.uid)) items.push({ id: u.uid, name: u.name || u.email });
-      });
-    }
-  }
-
-  panel.innerHTML = `
-    <input id="cal-pt-search" type="text" placeholder="🔍 Buscar ${type === 'client' ? 'cliente' : 'membro'}..."
-      oninput="_calFilterPt(this.value)"
-      style="width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit;margin-bottom:6px">
-    <div id="cal-pt-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:3px">
-      ${items.map(it => `
-        <div onclick="_calSelectPt('${it.id}','${it.name.replace(/'/g,"\\'")}',this)"
-          data-name="${it.name.toLowerCase()}"
-          style="padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--text-primary);border:1px solid transparent;transition:.12s"
-          onmouseover="this.style.background='var(--accent-soft)';this.style.borderColor='var(--border-bright)'"
-          onmouseout="this.style.background='transparent';this.style.borderColor='transparent'">
-          ${type === 'client' ? '👥' : '👤'} ${it.name}
-        </div>`).join('')}
-      ${items.length === 0 ? `<div style="font-size:12px;color:var(--text-muted);padding:8px">Nenhum ${type === 'client' ? 'cliente' : 'membro'} encontrado</div>` : ''}
-    </div>`;
+function _calSetVis(vis) {
+  _calModalState.visibility = vis;
+  const bP = document.getElementById('cal-vis-public');
+  const bA = document.getElementById('cal-vis-admin');
+  const ds = document.getElementById('cal-vis-desc');
+  if (bP) bP.className = vis === 'public' ? 'btn btn-primary' : 'btn btn-ghost';
+  if (bA) bA.className = vis === 'admin'  ? 'btn btn-primary' : 'btn btn-ghost';
+  if (ds) ds.textContent = vis === 'public'
+    ? 'Todos os membros v\xEAem esta tarefa.'
+    : 'Apenas admins e gerentes v\xEAem esta tarefa.';
 }
 
-function _calFilterPt(q) {
-  const items = document.querySelectorAll('#cal-pt-list > div[data-name]');
-  items.forEach(el => {
-    el.style.display = el.dataset.name.includes(q.toLowerCase()) ? '' : 'none';
-  });
+function _calPickColor(color, el) {
+  _calModalState.color = color;
+  document.querySelectorAll('#cal-color-dots div').forEach(d => d.style.borderColor = 'transparent');
+  el.style.borderColor = '#fff';
 }
-
-function _calSelectPt(id, name, el) {
-  _calModalState.participantId   = id;
-  _calModalState.participantName = name;
-  document.querySelectorAll('#cal-pt-list > div').forEach(d => {
-    d.style.background   = 'transparent';
-    d.style.borderColor  = 'transparent';
-    d.style.fontWeight   = '400';
-    d.style.color        = 'var(--text-primary)';
-  });
-  el.style.background  = 'var(--accent-soft)';
-  el.style.borderColor = 'var(--accent)';
-  el.style.fontWeight  = '700';
-  el.style.color       = 'var(--accent)';
-  const search = document.getElementById('cal-pt-search');
-  if (search) search.value = name.split(' — ')[0];
-}
-
-function _calSetLt() {} // legacy — replaced by _calAddLink
 
 function _calAddLink() {
   if (!_calModalState.links) _calModalState.links = [];
-  const idx = _calModalState.links.length;
   _calModalState.links.push({ type: 'meet', url: '' });
   _calRenderLinksList();
 }
@@ -10729,79 +10785,180 @@ function _calRenderLinksList() {
   el.innerHTML = links.map((lk, i) => `
     <div style="display:flex;gap:6px;align-items:center">
       <select onchange="_calModalState.links[${i}].type=this.value"
-        style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit;flex-shrink:0">
-        <option value="meet"  ${lk.type==='meet'?'selected':''}>📹 Meet/Zoom</option>
-        <option value="maps"  ${lk.type==='maps'?'selected':''}>📍 Localização</option>
-        <option value="other" ${lk.type==='other'?'selected':''}>🔗 Outro</option>
+        style="background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit;flex-shrink:0">
+        <option value="meet"  ${lk.type === 'meet'  ? 'selected' : ''}>📹 Meet/Zoom</option>
+        <option value="maps"  ${lk.type === 'maps'  ? 'selected' : ''}>📍 Localiza\xE7\xE3o</option>
+        <option value="other" ${lk.type === 'other' ? 'selected' : ''}>🔗 Outro</option>
       </select>
       <input type="url" value="${lk.url}" placeholder="https://..."
         oninput="_calModalState.links[${i}].url=this.value"
-        style="flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit">
-      <button onclick="_calRemoveLink(${i})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0">×</button>
-    </div>
-  `).join('');
+        style="flex:1;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit">
+      <button onclick="_calRemoveLink(${i})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:17px;padding:4px">\xD7</button>
+    </div>`).join('');
 }
 
-function _calSetVis(vis) {
-  _calModalState.visibility = vis;
-  const bPub = document.getElementById('cal-vis-public');
-  const bAdm = document.getElementById('cal-vis-admin');
-  if (bPub) bPub.className = vis === 'public' ? 'btn btn-primary' : 'btn btn-ghost';
-  if (bAdm) bAdm.className = vis === 'admin'  ? 'btn btn-primary' : 'btn btn-ghost';
-  const desc = document.getElementById('cal-vis-desc');
-  if (desc) desc.textContent = vis === 'public'
-    ? 'Todos os membros veem esta tarefa e quando for concluída.'
-    : 'Apenas admins e gerentes veem esta tarefa e seu status.';
-}
+// Legacy stubs (backward compat)
+function _calSetLt() {}
+function _calSetPt(type) {}
+function _calFilterPt(q) {}
+function _calSelectPt(id, name, el) {}
 
-function _calPickColor(color, el) {
-  _calModalState.color = color;
-  document.querySelectorAll('#cal-color-dots div').forEach(d => d.style.borderColor = 'transparent');
-  el.style.borderColor = '#fff';
-}
-
-// ── Salvar nova tarefa ─────────────────────────────────────────────────────
+// ── Salvar / Atualizar ─────────────────────────────────────────────────────
 
 async function _calSave() {
   const title = document.getElementById('cal-f-title')?.value.trim();
-  if (!title) { addNotif('Digite o título da tarefa', 'warn'); return; }
-
+  if (!title) { addNotif('Digite o t\xEDtulo da tarefa', 'warn'); return; }
   const st = _calModalState;
   if (st.recurrence === 'weekly' && st.days.length === 0) {
     addNotif('Selecione pelo menos um dia da semana', 'warn'); return;
   }
-
   const btn = document.getElementById('cal-save-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Salvando...'; }
 
-  const task = {
+  const data = {
     title,
     description:     document.getElementById('cal-f-desc')?.value.trim() || '',
     recurrence:      st.recurrence || 'once',
     date:            st.recurrence === 'once' ? (document.getElementById('cal-f-date')?.value || _calDateStr(new Date())) : null,
     days:            st.recurrence === 'weekly' ? [...st.days] : [],
     time:            document.getElementById('cal-f-time')?.value || '',
-    participantType: st.participantType || 'none',
-    participantId:   st.participantId   || '',
-    participantName: st.participantName || '',
+    participants:    st.participants || [],
+    // Legacy compat fields
+    participantName: (st.participants || [])[0]?.name || '',
+    participantType: (st.participants || [])[0]?.type || 'none',
+    participantId:   (st.participants || [])[0]?.id   || '',
     links:           (st.links || []).filter(l => l.url && l.url.trim()),
     visibility:      st.visibility || 'public',
     color:           st.color || _CAL_COLORS[0],
-    completedDates:  [],
-    createdBy:       window._userId || '',
-    createdByName:   window._userName || '',
   };
 
   try {
-    const id = await window.saveCalTask(task);
-    task.id = id;
-    _calTasks.push(task);
+    if (_calEditingId) {
+      await window.updateCalTask(_calEditingId, data);
+      const idx = _calTasks.findIndex(t => t.id === _calEditingId);
+      if (idx >= 0) _calTasks[idx] = { ..._calTasks[idx], ...data };
+      addNotif('Tarefa atualizada!', 'success');
+    } else {
+      data.completedDates = [];
+      data.createdBy      = window._userId || '';
+      data.createdByName  = window._userName || '';
+      const id = await window.saveCalTask(data);
+      data.id = id;
+      _calTasks.push(data);
+      addNotif('Tarefa criada com sucesso!', 'success');
+    }
     _calCloseModal();
     _calRender();
-    addNotif('Tarefa salva com sucesso!', 'success');
+    _calUpdateFloating();
   } catch(e) {
     addNotif('Erro ao salvar: ' + e.message, 'error');
-    if (btn) { btn.disabled = false; btn.textContent = '✔ Salvar Tarefa'; }
+    if (btn) { btn.disabled = false; btn.textContent = _calEditingId ? '✔ Salvar Altera\xE7\xF5es' : '✔ Criar Tarefa'; }
   }
 }
+
+// ── Widget flutuante "Hoje" ────────────────────────────────────────────────
+
+function _calInitFloating() {
+  if (document.getElementById('cal-float-btn')) return;
+
+  const btn = document.createElement('div');
+  btn.id = 'cal-float-btn';
+  btn.title = 'Tarefas de hoje';
+  btn.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:1500;width:48px;height:48px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 24px rgba(167,96,253,.55);transition:.2s;user-select:none;font-size:21px';
+  btn.innerHTML = '📅<span id="cal-float-badge" style="display:none;position:absolute;top:-3px;right:-3px;background:#ef4444;color:#fff;font-size:9px;font-weight:800;border-radius:50%;min-width:16px;height:16px;padding:0 3px;align-items:center;justify-content:center;line-height:1;border:2px solid #0a0818"></span>';
+  btn.onmouseover = () => { btn.style.transform = 'scale(1.12)'; btn.style.boxShadow = '0 6px 32px rgba(167,96,253,.75)'; };
+  btn.onmouseout  = () => { btn.style.transform = 'scale(1)';    btn.style.boxShadow = '0 4px 24px rgba(167,96,253,.55)'; };
+  btn.onclick     = _calToggleFloating;
+  document.body.appendChild(btn);
+
+  const panel = document.createElement('div');
+  panel.id = 'cal-float-panel';
+  panel.style.cssText = 'display:none;position:fixed;bottom:80px;right:24px;z-index:1499;width:320px;max-height:440px;background:#16162a;border:1px solid rgba(167,96,253,.35);border-radius:16px;overflow:hidden;box-shadow:0 8px 48px rgba(0,0,0,.75);flex-direction:column';
+  document.body.appendChild(panel);
+
+  _calUpdateFloating();
+}
+
+function _calToggleFloating() {
+  const panel = document.getElementById('cal-float-panel');
+  if (!panel) return;
+  const open = panel.style.display !== 'none';
+  panel.style.display = open ? 'none' : 'flex';
+  if (!open) _calUpdateFloating();
+}
+
+function _calUpdateFloating() {
+  const badge = document.getElementById('cal-float-badge');
+  const panel = document.getElementById('cal-float-panel');
+  if (!badge && !panel) return;
+
+  const isAdmin  = _calIsAdmin();
+  const today    = new Date(); today.setHours(0, 0, 0, 0);
+  const todayStr = _calDateStr(today);
+  const dow      = today.getDay();
+
+  const tasks = _calTasks.filter(t => {
+    if (t.visibility === 'admin' && !isAdmin) return false;
+    if (t.recurrence === 'once')   return t.date === todayStr;
+    if (t.recurrence === 'weekly') return (t.days || []).includes(dow);
+    return false;
+  }).sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+
+  const pending = tasks.filter(t => !_calIsDone(t, todayStr)).length;
+  if (badge) { badge.textContent = pending; badge.style.display = pending > 0 ? 'flex' : 'none'; }
+
+  if (!panel || panel.style.display === 'none') return;
+
+  const dayName = _CAL_DAY_FULL[today.getDay()];
+  const mName   = _CAL_MONTHS[today.getMonth()];
+
+  const taskHtml = tasks.length === 0
+    ? '<div style="text-align:center;padding:24px 16px;color:var(--text-muted);font-size:13px">Nenhuma tarefa hoje 🎉</div>'
+    : tasks.map(t => {
+        const done  = _calIsDone(t, todayStr);
+        const color = t.color || '#a760fd';
+        const pts   = _calGetParticipants(t);
+        return `
+        <div onclick="_calToggle('${t.id}','${todayStr}',${done})"
+          style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border-radius:8px;border-left:3px solid ${done ? 'var(--border)' : color};background:${done ? 'transparent' : color + '18'};margin-bottom:6px;cursor:pointer;opacity:${done ? .5 : 1};transition:.15s">
+          <span style="font-size:13px;flex-shrink:0;margin-top:1px">${done ? '✅' : '⬜'}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:600;color:var(--text-primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;${done ? 'text-decoration:line-through' : ''}">${t.title}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:3px">
+              ${t.time ? `<span style="font-size:10px;color:var(--text-muted)">🕐${t.time}</span>` : ''}
+              ${pts.slice(0, 2).map(p => `<span style="font-size:10px;color:var(--text-muted)">${p.type === 'client' ? '👥' : '👤'}${p.name.split(' ')[0]}</span>`).join('')}
+              ${pts.length > 2 ? `<span style="font-size:10px;color:var(--text-muted)">+${pts.length - 2}</span>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('');
+
+  panel.innerHTML = `
+    <div style="padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(167,96,253,.08);flex-shrink:0">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.6px">☀️ Hoje</div>
+        <div style="font-size:12px;color:var(--text-secondary)">${dayName}, ${today.getDate()} de ${mName}</div>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button onclick="_calOpenModal(null)" class="btn btn-primary" style="font-size:11px;padding:5px 10px">+ Nova</button>
+        <button onclick="_calToggleFloating()" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:19px;line-height:1">\xD7</button>
+      </div>
+    </div>
+    <div style="overflow-y:auto;flex:1;padding:10px">${taskHtml}</div>
+    <div style="padding:10px 16px;border-top:1px solid var(--border);text-align:center;flex-shrink:0">
+      <span onclick="showPage('calendario');_calToggleFloating()" style="font-size:11px;color:var(--accent);cursor:pointer;text-decoration:underline">Ver calend\xE1rio completo →</span>
+    </div>`;
+}
+
+// ── Auto-init ao fazer login ───────────────────────────────────────────────
+
+window.addEventListener('firebase-ready', () => {
+  _calInitFloating();
+  if (window.loadCalTasks) {
+    window.loadCalTasks().then(tasks => {
+      _calTasks = tasks;
+      _calUpdateFloating();
+    }).catch(() => {});
+  }
+});
 
