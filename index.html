@@ -1099,7 +1099,7 @@
 <div class="modal-overlay" id="modal-client-reg">
   <div class="modal client-modal">
     <div class="modal-header">
-      <div class="modal-title" id="client-reg-title">➕ Novo Cliente</div>
+      <div class="modal-title" id="client-reg-title">+ Novo Cliente</div>
       <button class="modal-close" onclick="closeClientReg()">✕</button>
     </div>
 
@@ -1117,7 +1117,7 @@
 
     <!-- STEP 1: RESPONSÁVEL -->
     <div class="step-panel active" id="spanel-1">
-      <div class="step-section-title">🧑‍💼 Dados do Responsável</div>
+      <div class="step-section-title">Dados do Responsável</div>
       <div class="form-grid">
       <div class="form-row form-full"><label>Nome completo</label>
         <div class="autocomplete-wrap">
@@ -1135,7 +1135,7 @@
         <div class="form-row"><label>Melhor horário para contato</label><input id="c-horario" type="text" placeholder="ex: Seg-Sex, 9h-18h"></div>
         <div class="form-row form-full"><label>Preferência de comunicação</label>
           <select id="c-pref-com"><option>WhatsApp</option><option>Ligação</option><option>E-mail</option></select></div>
-        <div class="form-row form-full"><label>🌡️ Temperatura</label>
+        <div class="form-row form-full"><label>Temperatura</label>
           <select id="c-temp"><option value="">—</option><option value="Quente">🔴 Quente</option><option value="Morno">🟡 Morno</option><option value="Frio">🔵 Frio</option></select></div>
         <div class="form-row form-full"><label>Status do cliente</label>
           <select id="c-status-cli"><option value="Lead">Lead</option><option value="Em negociação">Em negociação</option><option value="Ativo">Ativo</option><option value="Pausado">Pausado</option><option value="Encerrado">Encerrado</option></select></div>
@@ -1146,7 +1146,7 @@
 
     <!-- STEP 2: EMPRESA -->
     <div class="step-panel" id="spanel-2">
-      <div class="step-section-title">🏢 Dados da Empresa</div>
+      <div class="step-section-title">Dados da Empresa</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Nome da empresa</label><input id="c-empresa" type="text" placeholder="Razão social"></div>
         <div class="form-row"><label>Nome fantasia</label><input id="c-fantasia" type="text"></div>
@@ -1161,7 +1161,7 @@
         <div class="form-row"><label>Estado</label><input id="c-estado" type="text"></div>
         <div class="form-row"><label>CEP</label><input id="c-cep" type="text"></div>
       </div>
-      <div class="step-section-title">📊 Informações do Negócio</div>
+      <div class="step-section-title">Informações do Negócio</div>
       <div class="form-grid">
         <div class="form-row"><label>Segmento / Nicho</label><input id="c-segmento" type="text"></div>
         <div class="form-row"><label>Categoria principal</label><input id="c-categoria" type="text"></div>
@@ -1178,15 +1178,15 @@
 
     <!-- STEP 3: REDES SOCIAIS -->
     <div class="step-panel" id="spanel-3">
-      <div class="step-section-title">📱 Redes Sociais e Presença Digital</div>
+      <div class="step-section-title">Redes Sociais e Presença Digital</div>
       <div id="social-rows-container"></div>
       <button class="btn-add-social" onclick="addSocialRow()">+ Adicionar rede social</button>
     </div>
 
     <!-- STEP 4: ACESSOS -->
     <div class="step-panel" id="spanel-4">
-      <div class="step-section-title">🔐 Acessos e Contas Importantes</div>
-      <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px">🔒 Campos sensíveis — passe o mouse para revelar</div>
+      <div class="step-section-title">Acessos e Contas Importantes</div>
+      <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:14px">Campos sensíveis — passe o mouse sobre o campo para revelar</div>
       <div class="form-grid">
         <div class="form-row"><label>Google (Gmail principal)</label><div class="sensitive-field"><input id="c-gmail" type="text"><button class="sensitive-toggle" onclick="toggleSensitive('c-gmail',this)" tabindex="-1">👁</button></div></div>
         <div class="form-row"><label>Senha Google</label><div class="sensitive-field"><input id="c-gmail-senha" type="password"><button class="sensitive-toggle" onclick="toggleSensitive('c-gmail-senha',this)" tabindex="-1">👁</button></div></div>
@@ -1203,7 +1203,7 @@
 
     <!-- STEP 5: SERVIÇOS -->
     <div class="step-panel" id="spanel-5">
-      <div class="step-section-title">📦 Serviços Contratados</div>
+      <div class="step-section-title">Serviços Contratados</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Tipo de plano</label>
           <select id="c-plano"><option>Completo</option><option>Intermediário</option><option>Básico</option><option>Personalizado</option></select></div>
@@ -1216,7 +1216,7 @@
         <div class="form-row"><label>Frequência de entrega</label><input id="c-frequencia" type="text" placeholder="ex: Semanal, Mensal"></div>
         <div class="form-row"><label>Responsáveis pelo projeto</label><input id="c-responsaveis" type="text" placeholder="ex: Amanda, Gabriel"></div>
       </div>
-      <div class="step-section-title">🧠 Briefing e Estratégia</div>
+      <div class="step-section-title">Briefing e Estratégia</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Objetivo principal</label><textarea id="c-objetivo" rows="2"></textarea></div>
         <div class="form-row form-full"><label>Metas</label><textarea id="c-metas" rows="2"></textarea></div>
@@ -1230,7 +1230,7 @@
 
     <!-- STEP 6: FINANCEIRO -->
     <div class="step-panel" id="spanel-6">
-      <div class="step-section-title">💰 Financeiro</div>
+      <div class="step-section-title">Financeiro</div>
       <div class="form-grid">
         <div class="form-row"><label>Valor do contrato</label><input id="c-valor" type="text" placeholder="R$ 0,00"></div>
         <div class="form-row"><label>Forma de pagamento</label><input id="c-forma-pag" type="text" placeholder="ex: Pix, Boleto, Cartão"></div>
@@ -1244,7 +1244,7 @@
         <div class="form-row"><label>Data de início</label><input id="c-inicio" type="date"></div>
         <div class="form-row"><label>Data de término</label><input id="c-fim" type="date"></div>
       </div>
-      <div class="step-section-title">📁 Organização Interna</div>
+      <div class="step-section-title">Organização Interna</div>
       <div class="form-grid">
         <div class="form-row form-full"><label>Link da pasta do cliente (Drive)</label><input id="c-link-pasta" type="url" placeholder="https://drive.google.com/..."></div>
         <div class="form-row form-full"><label>Link do contrato</label><input id="c-link-contrato" type="url" placeholder="https://..."></div>
@@ -1255,15 +1255,15 @@
 
     <!-- STEP 7: OBSERVAÇÕES -->
     <div class="step-panel" id="spanel-7">
-      <div class="step-section-title">📝 Observações Gerais</div>
+      <div class="step-section-title">Observações Gerais</div>
       <div class="form-row" style="margin-bottom:16px"><label>Campo livre para informações adicionais</label><textarea id="c-obs" rows="5" placeholder="Qualquer informação adicional sobre o cliente..."></textarea></div>
-      <div class="step-section-title">✅ Checklist de Onboarding</div>
+      <div class="step-section-title">Checklist de Onboarding</div>
       <div id="onb-check-container" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:var(--bg-card2);border-radius:10px;border:1px solid var(--border)"></div>
     </div>
 
     <!-- STEP 8: EQUIPE -->
     <div class="step-panel" id="spanel-8">
-      <div class="step-section-title">👥 Adicionar à Equipe</div>
+      <div class="step-section-title">Adicionar à Equipe</div>
       <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Selecione as equipes que terão acesso a este cliente. Para cada equipe selecionada, escolha em qual grupo o elemento do cliente vai aparecer.</div>
       <div class="team-assign-grid" id="team-assign-grid"></div>
       <div id="group-selects-container"></div>
@@ -1273,6 +1273,7 @@
     <div class="modal-actions" style="margin-top:20px">
       <button class="btn btn-ghost" id="client-reg-prev" onclick="clientRegPrev()" style="display:none">← Anterior</button>
       <div style="flex:1"></div>
+      <button class="btn btn-ghost" id="client-reg-export" onclick="exportClientData(null)" style="display:none;font-size:12px">Exportar ficha</button>
       <button class="btn btn-ghost" onclick="closeClientReg()">Cancelar</button>
       <button class="btn btn-primary" id="client-reg-next" onclick="clientRegNext()">Próximo →</button>
     </div>
@@ -1288,23 +1289,24 @@
         <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px" id="cd-company">—</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="editClientFromDetail()">✏️ Editar</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="exportClientData(_detailClientId)">Exportar</button>
+        <button class="btn btn-ghost" style="font-size:11px;padding:5px 12px" onclick="editClientFromDetail()">Editar</button>
         <button class="modal-close" onclick="closeClientDetail()">✕</button>
       </div>
     </div>
     <div class="client-detail-tabs" id="cd-tabs">
-      <div class="client-detail-tab active" onclick="switchDetailTab('geral',this)">📋 Geral</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('empresa',this)">🏢 Empresa</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('redes',this)">📱 Redes</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('acessos',this)">🔐 Acessos</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('servicos',this)">📦 Serviços</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('financeiro',this)">💰 Financeiro</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('briefing',this)">🧠 Briefing</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('jornada360',this)">🚀 Jornada</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('avaliacao',this)">⭐ Avaliação</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('calendario',this)">📅 Calendário</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('alertas',this)">🚨 Alertas</div>
-      <div class="client-detail-tab" onclick="switchDetailTab('notas360',this)">📝 Notas</div>
+      <div class="client-detail-tab active" onclick="switchDetailTab('geral',this)">Geral</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('empresa',this)">Empresa</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('redes',this)">Redes</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('acessos',this)">Acessos</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('servicos',this)">Serviços</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('financeiro',this)">Financeiro</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('briefing',this)">Briefing</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('jornada360',this)">Jornada</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('avaliacao',this)">Avaliação</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('calendario',this)">Calendário</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('alertas',this)">Alertas</div>
+      <div class="client-detail-tab" onclick="switchDetailTab('notas360',this)">Notas</div>
     </div>
     <div id="cd-body"></div>
   </div>

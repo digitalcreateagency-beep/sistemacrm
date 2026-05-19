@@ -2277,9 +2277,9 @@ function openClientReg(clientId) {
   if (editingClientId) {
     const c = clientsData.find(x => x.id === editingClientId);
     if (c) prefillClientForm(c);
-    document.getElementById('client-reg-title').textContent = '✏️ Editar Cliente';
+    document.getElementById('client-reg-title').textContent = 'Editar Cliente';
   } else {
-    document.getElementById('client-reg-title').textContent = '➕ Novo Cliente';
+    document.getElementById('client-reg-title').textContent = 'Novo Cliente';
     clearClientForm();
   }
 
@@ -2435,7 +2435,9 @@ function updateClientStepUI() {
     panel.className = 'step-panel' + (i===clientModalStep?' active':'');
   }
   document.getElementById('client-reg-prev').style.display = clientModalStep > 1 ? '' : 'none';
-  document.getElementById('client-reg-next').textContent = clientModalStep === CLIENT_STEPS ? '✅ Salvar cliente' : 'Próximo →';
+  document.getElementById('client-reg-next').textContent = clientModalStep === CLIENT_STEPS ? 'Salvar cliente' : 'Próximo →';
+  const exportBtn = document.getElementById('client-reg-export');
+  if (exportBtn) exportBtn.style.display = clientModalStep === CLIENT_STEPS ? '' : 'none';
 }
 
 function saveClientReg() {
@@ -2473,6 +2475,158 @@ function saveClientReg() {
   saveState();
   closeClientReg();
   renderClients();
+}
+
+// ── Exportar ficha do cliente (sem dados de acesso/senhas) ─────────────────
+
+function exportClientData(clientId) {
+  // Use clientId if passed, otherwise grab current form data
+  const c = clientId ? clientsData.find(x => x.id === clientId) : collectClientForm();
+  if (!c || !c.nome) { addNotif('Preencha ao menos o nome do cliente antes de exportar', 'warn'); return; }
+
+  const d = v => v || '—';
+  const dt = v => v ? new Date(v).toLocaleDateString('pt-BR') : '—';
+
+  const rows = (pairs) => pairs
+    .filter(([,v]) => v && v !== '—')
+    .map(([k, v]) => `<tr><td class="k">${k}</td><td class="v">${v}</td></tr>`)
+    .join('');
+
+  const sec = (title, pairs) => {
+    const r = rows(pairs);
+    if (!r) return '';
+    return `<div class="sec"><div class="sec-title">${title}</div><table>${r}</table></div>`;
+  };
+
+  const socRow = (s) => `<tr>
+    <td class="k">${d(s.plataforma)}</td>
+    <td class="v">${s.usuario ? '@' + s.usuario : ''} ${s.link ? `<a href="${s.link}">${s.link}</a>` : ''}</td>
+  </tr>`;
+
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Ficha — ${c.nome}</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Inter',system-ui,sans-serif;font-size:12px;color:#1a1030;background:#fff;padding:32px 36px;max-width:900px;margin:0 auto}
+    .header{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #a760fd;margin-bottom:28px}
+    .header h1{font-size:22px;font-weight:800;color:#a760fd;margin-bottom:4px}
+    .header .sub{font-size:13px;color:#666}
+    .header .meta{font-size:11px;color:#888;text-align:right;line-height:1.8}
+    .brand{color:#a760fd;font-weight:700}
+    .sec{margin-bottom:22px;break-inside:avoid}
+    .sec-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#7c22b4;border-left:3px solid #a760fd;padding:0 0 0 8px;margin-bottom:8px}
+    table{width:100%;border-collapse:collapse}
+    tr{border-bottom:1px solid #f3eeff}
+    td{padding:6px 4px;vertical-align:top}
+    .k{color:#888;width:160px;font-size:11px;flex-shrink:0}
+    .v{color:#1a1030;font-weight:600;font-size:12px}
+    a{color:#a760fd}
+    .footer{margin-top:28px;font-size:10px;color:#bbb;text-align:center;border-top:1px solid #f0eaff;padding-top:14px}
+    .cols{display:grid;grid-template-columns:1fr 1fr;gap:0 40px}
+    @media print{body{padding:0} .no-print{display:none}}
+    .print-btn{position:fixed;top:16px;right:16px;background:#a760fd;color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:13px;font-weight:700;cursor:pointer;z-index:9}
+  </style>
+</head>
+<body>
+  <button class="print-btn no-print" onclick="window.print()">Imprimir / Salvar PDF</button>
+
+  <div class="header">
+    <div>
+      <h1>${d(c.nome)}</h1>
+      <div class="sub">${d(c.empresa)}${c.fantasia ? ' — ' + c.fantasia : ''}</div>
+      ${c.statusCli ? `<div class="sub" style="margin-top:4px;color:#a760fd;font-weight:700">${c.statusCli}</div>` : ''}
+    </div>
+    <div class="meta">
+      <div>Ficha do cliente</div>
+      <div>${new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})}</div>
+      <div class="brand">DigitalCreate Hub</div>
+    </div>
+  </div>
+
+  ${sec('Dados do Responsável', [
+    ['Nome completo', d(c.nome)],
+    ['Cargo', d(c.cargo)],
+    ['E-mail', d(c.email)],
+    ['WhatsApp / Telefone', d(c.tel)],
+    ['Telefone 2', d(c.tel2)],
+    ['Horário para contato', d(c.horario)],
+    ['Preferência de contato', d(c.prefCom)],
+    ['Temperatura', d(c.temp)],
+    ['Status', d(c.statusCli)],
+    ['Origem', d(c.origem)],
+    ['Observações relacionamento', d(c.obsRel)],
+  ])}
+
+  ${sec('Dados da Empresa', [
+    ['Razão social', d(c.empresa)],
+    ['Nome fantasia', d(c.fantasia)],
+    ['Site', d(c.site)],
+    ['E-mail empresarial', d(c.emailEmp)],
+    ['Telefone comercial', d(c.telEmp)],
+    ['Endereço', d(c.end)],
+    ['Cidade / Estado', c.cidade ? c.cidade + (c.estado ? ' — ' + c.estado : '') : '—'],
+    ['Segmento', d(c.segmento)],
+    ['Categoria', d(c.categoria)],
+    ['Serviços / Produtos', d(c.servicosEmp)],
+    ['Ticket médio', d(c.ticket)],
+    ['Região de atuação', d(c.regiao)],
+    ['Público-alvo', d(c.publico)],
+    ['Diferencial', d(c.diferencial)],
+    ['Concorrentes', d(c.concorrentes)],
+    ['Modelo de atuação', d(c.modelo)],
+  ])}
+
+  ${(c.socials||[]).length > 0 ? `<div class="sec"><div class="sec-title">Redes Sociais</div><table>${(c.socials||[]).map(socRow).join('')}</table></div>` : ''}
+
+  ${sec('Serviços Contratados', [
+    ['Plano', d(c.plano)],
+    ['Serviços', (c.servicos||[]).join(', ') || '—'],
+    ['Entrega', d(c.entrega)],
+    ['Frequência', d(c.frequencia)],
+    ['Responsáveis', d(c.responsaveis)],
+    ['Objetivo principal', d(c.objetivo)],
+    ['Metas', d(c.metas)],
+    ['Problemas atuais', d(c.problemas)],
+    ['Histórico', d(c.historico)],
+    ['Tom de comunicação', d(c.tom)],
+    ['Referências', d(c.refs)],
+    ['Restrições', d(c.restricoes)],
+  ])}
+
+  ${sec('Financeiro', [
+    ['Valor do contrato', d(c.valor)],
+    ['Forma de pagamento', d(c.formaPag)],
+    ['Dia de vencimento', d(c.diaPag)],
+    ['Status do pagamento', d(c.payStatus)],
+    ['Tipo de contrato', d(c.tipoCont)],
+    ['Renovação automática', d(c.renovacao)],
+    ['Início', dt(c.inicio)],
+    ['Término', dt(c.fim)],
+    ['Link pasta Drive', d(c.linkPasta)],
+    ['Link do contrato', d(c.linkContrato)],
+    ['Link do planejamento', d(c.linkPlan)],
+    ['Etapa atual', d(c.etapa)],
+  ])}
+
+  ${sec('Observações', [
+    ['Observações gerais', d(c.obs)],
+    ['Onboarding', (c.onboarding||[]).join(', ') || '—'],
+  ])}
+
+  <div class="footer">
+    Ficha gerada automaticamente pelo DigitalCreate Hub &bull;
+    Dados de acesso e senhas não são incluídos nesta exportação por segurança.
+  </div>
+</body>
+</html>`;
+
+  const win = window.open('', '_blank', 'width=960,height=800');
+  if (!win) { addNotif('Permita pop-ups para exportar a ficha', 'warn'); return; }
+  win.document.write(html);
+  win.document.close();
 }
 
 function syncClientToBoards(client) {
@@ -10604,7 +10758,7 @@ function _calBuildModal(defaultDate, editTask) {
     <div id="cal-pt-chips" style="display:flex;flex-wrap:wrap;gap:5px;min-height:4px;margin-bottom:8px"></div>
     <input id="cal-pt-search" type="text" placeholder="🔍 Buscar clientes ou membros..." oninput="_calFilterAllPt(this.value)"
       style="${iStyle};margin-bottom:6px">
-    <div id="cal-pt-list" style="max-height:150px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px"></div>
+    <div id="cal-pt-list" style="max-height:150px;overflow-y:auto;border:1px solid rgba(167,96,253,.3);border-radius:8px;padding:4px;background:#0f0d22"></div>
   </div>
 
   <div>
@@ -10684,9 +10838,9 @@ function _calBuildPtList(query) {
     const safeName = it.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     return `
     <div onclick="_calTogglePt('${it.id}','${safeName}','${it.type}',this)" data-id="${it.id}"
-      style="padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:8px;background:${sel ? 'rgba(167,96,253,.15)' : 'transparent'};border:1px solid ${sel ? 'var(--accent)' : 'transparent'};transition:.12s">
+      style="padding:7px 10px;border-radius:6px;cursor:pointer;font-size:12px;display:flex;align-items:center;gap:8px;background:${sel ? 'rgba(167,96,253,.25)' : 'rgba(255,255,255,.03)'};border:1px solid ${sel ? '#a760fd' : 'transparent'};transition:.12s">
       <span style="font-size:13px;flex-shrink:0;width:18px;text-align:center">${sel ? '✅' : it.type === 'client' ? '👥' : '👤'}</span>
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${sel ? 'var(--accent)' : 'var(--text-primary)'}">${it.name}</span>
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:${sel ? '#a760fd' : '#ece8ff'}">${it.name}</span>
       <span style="font-size:9px;padding:2px 6px;border-radius:4px;background:${it.type === 'client' ? 'rgba(101,231,243,.1)' : 'rgba(167,96,253,.1)'};color:${it.type === 'client' ? '#65e7f3' : 'var(--accent)'};font-weight:700">${it.type === 'client' ? 'CLIENTE' : 'MEMBRO'}</span>
     </div>`;
   }).join('');
