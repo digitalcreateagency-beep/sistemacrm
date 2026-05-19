@@ -5111,6 +5111,7 @@ window.deleteSubitem = function(boardKey, groupId, itemId, subId, e) {
     document.body.classList.add('light');
     document.getElementById('theme-icon').textContent = '☀️';
     document.getElementById('theme-label').textContent = 'Escuro';
+    _applyLogoTheme(true);
   }
   // Update sidebar user avatar initial
   window.addEventListener('firebase-ready', async () => {
@@ -5918,6 +5919,20 @@ function toggleTheme() {
   document.getElementById('theme-icon').textContent = isLight ? '☀️' : '🌙';
   document.getElementById('theme-label').textContent = isLight ? 'Escuro' : 'Claro';
   localStorage.setItem('dc_theme', isLight ? 'light' : 'dark');
+  _applyLogoTheme(isLight);
+}
+
+function _applyLogoTheme(isLight) {
+  // If switching to light mode and the light logo failed to load,
+  // the CSS fallback (logo-invert-fallback class + purple bg) handles it.
+  // This function ensures onerror fires correctly on first switch.
+  const ll = document.getElementById('sidebar-logo-light');
+  const lll = document.getElementById('login-logo-light');
+  if (isLight) {
+    // Re-trigger onerror check in case image wasn't tested yet
+    if (ll && !ll.complete) { ll.src = ll.src; }
+    if (lll && !lll.complete) { lll.src = lll.src; }
+  }
 }
 
 // ─── MOBILE NAVIGATION ────────────────────────────────────────────────────────
