@@ -10638,13 +10638,73 @@ function _calToggleDay(num, el) {
 
 function _calSetPt(type) {
   _calModalState.participantType = type;
+  _calModalState.participantId   = null;
+  _calModalState.participantName = '';
   ['none','client','member'].forEach(t => {
     const b = document.getElementById('cal-pt-' + t);
     if (b) b.className = t === type ? 'btn btn-primary' : 'btn btn-ghost';
   });
-  document.getElementById('cal-panel-pt').style.display = type === 'none' ? 'none' : '';
-  const inp = document.getElementById('cal-f-ptname');
-  if (inp) inp.placeholder = type === 'client' ? 'Nome do cliente...' : 'Nome do membro...';
+  const panel = document.getElementById('cal-panel-pt');
+  if (!panel) return;
+  if (type === 'none') { panel.innerHTML = ''; panel.style.display = 'none'; return; }
+  panel.style.display = '';
+
+  // Monta lista de opções
+  let items = [];
+  if (type === 'client') {
+    items = (clientsData || [])
+      .filter(c => !c.archived && c.nome)
+      .map(c => ({ id: c.id || c.nome, name: c.nome + (c.empresa ? ` — ${c.empresa}` : '') }));
+  } else {
+    items = (teamMembers || [])
+      .map(m => ({ id: m.uid || m.key || m.label, name: m.label || m.name }));
+    // Também traz usuários reais do Firebase se disponível
+    if (window._allUsers) {
+      window._allUsers.forEach(u => {
+        if (!items.find(i => i.id === u.uid)) items.push({ id: u.uid, name: u.name || u.email });
+      });
+    }
+  }
+
+  panel.innerHTML = `
+    <input id="cal-pt-search" type="text" placeholder="🔍 Buscar ${type === 'client' ? 'cliente' : 'membro'}..."
+      oninput="_calFilterPt(this.value)"
+      style="width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 11px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit;margin-bottom:6px">
+    <div id="cal-pt-list" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:3px">
+      ${items.map(it => `
+        <div onclick="_calSelectPt('${it.id}','${it.name.replace(/'/g,"\\'")}',this)"
+          data-name="${it.name.toLowerCase()}"
+          style="padding:7px 10px;border-radius:7px;cursor:pointer;font-size:12px;color:var(--text-primary);border:1px solid transparent;transition:.12s"
+          onmouseover="this.style.background='var(--accent-soft)';this.style.borderColor='var(--border-bright)'"
+          onmouseout="this.style.background='transparent';this.style.borderColor='transparent'">
+          ${type === 'client' ? '👥' : '👤'} ${it.name}
+        </div>`).join('')}
+      ${items.length === 0 ? `<div style="font-size:12px;color:var(--text-muted);padding:8px">Nenhum ${type === 'client' ? 'cliente' : 'membro'} encontrado</div>` : ''}
+    </div>`;
+}
+
+function _calFilterPt(q) {
+  const items = document.querySelectorAll('#cal-pt-list > div[data-name]');
+  items.forEach(el => {
+    el.style.display = el.dataset.name.includes(q.toLowerCase()) ? '' : 'none';
+  });
+}
+
+function _calSelectPt(id, name, el) {
+  _calModalState.participantId   = id;
+  _calModalState.participantName = name;
+  document.querySelectorAll('#cal-pt-list > div').forEach(d => {
+    d.style.background   = 'transparent';
+    d.style.borderColor  = 'transparent';
+    d.style.fontWeight   = '400';
+    d.style.color        = 'var(--text-primary)';
+  });
+  el.style.background  = 'var(--accent-soft)';
+  el.style.borderColor = 'var(--accent)';
+  el.style.fontWeight  = '700';
+  el.style.color       = 'var(--accent)';
+  const search = document.getElementById('cal-pt-search');
+  if (search) search.value = name.split(' — ')[0];
 }
 
 function _calSetLt() {} // legacy — replaced by _calAddLink
@@ -10722,7 +10782,8 @@ async function _calSave() {
     days:            st.recurrence === 'weekly' ? [...st.days] : [],
     time:            document.getElementById('cal-f-time')?.value || '',
     participantType: st.participantType || 'none',
-    participantName: st.participantType !== 'none' ? (document.getElementById('cal-f-ptname')?.value.trim() || '') : '',
+    participantId:   st.participantId   || '',
+    participantName: st.participantName || '',
     links:           (st.links || []).filter(l => l.url && l.url.trim()),
     visibility:      st.visibility || 'public',
     color:           st.color || _CAL_COLORS[0],
