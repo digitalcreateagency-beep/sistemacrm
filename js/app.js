@@ -10415,7 +10415,7 @@ function _calRender() {
 <!-- ── MODAL ──────────────────────────────────────────── -->
 <div id="cal-modal" onclick="if(event.target===this)_calCloseModal()"
   style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2000;align-items:center;justify-content:center;padding:16px">
-  <div id="cal-modal-inner" style="background:var(--bg-sidebar);border:1px solid var(--border);border-radius:18px;width:100%;max-width:490px;max-height:92vh;overflow-y:auto">
+  <div id="cal-modal-inner" style="background:#16162a;border:1px solid var(--border);border-radius:18px;width:100%;max-width:490px;max-height:92vh;overflow-y:auto">
   </div>
 </div>`;
 }
