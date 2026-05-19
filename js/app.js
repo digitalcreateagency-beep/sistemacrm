@@ -10438,7 +10438,7 @@ function _calCard(task, dateStr, isAdmin) {
   <div style="display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin-top:3px">
     ${task.time ? `<span style="font-size:9px;color:var(--text-muted)">🕐 ${task.time}</span>` : ''}
     ${task.participantName ? `<span style="font-size:9px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px">👤 ${task.participantName}</span>` : ''}
-    ${task.link ? `<a href="${task.link}" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--accent);text-decoration:none">${linkIcon}</a>` : ''}
+    ${(task.links||[]).map(l => `<a href="${l.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:9px;color:var(--accent);text-decoration:none">${l.type==='maps'?'📍':l.type==='meet'?'📹':'🔗'}</a>`).join('')}
     ${task.visibility === 'admin' ? `<span style="font-size:8px;background:rgba(239,68,68,.15);color:#ef4444;padding:1px 4px;border-radius:3px;font-weight:700">🔒</span>` : ''}
     ${task.recurrence === 'weekly' ? `<span style="font-size:9px;color:var(--text-muted)">🔁</span>` : ''}
   </div>
@@ -10455,7 +10455,7 @@ function _calDayChip(task, dateStr) {
   <span style="font-size:12px;font-weight:600;${done ? 'text-decoration:line-through' : ''}">${task.title}</span>
   ${task.time ? `<span style="font-size:10px;color:var(--text-muted)">· ${task.time}</span>` : ''}
   ${task.participantName ? `<span style="font-size:10px;color:var(--text-muted)">· 👤 ${task.participantName}</span>` : ''}
-  ${task.link ? `<a href="${task.link}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--accent)">${task.linkType==='maps'?'📍':task.linkType==='meet'?'📹':'🔗'}</a>` : ''}
+  ${(task.links||[]).map(l => `<a href="${l.url}" target="_blank" onclick="event.stopPropagation()" style="font-size:11px;color:var(--accent)">${l.type==='maps'?'📍':l.type==='meet'?'📹':'🔗'}</a>`).join('')}
 </div>`;
 }
 
@@ -10497,7 +10497,7 @@ function _calOpenModal(defaultDate) {
   _calModalState = {
     recurrence: 'once',
     participantType: 'none',
-    linkType: 'none',
+    links: [],
     visibility: 'public',
     color: _CAL_COLORS[0],
     days: [],
@@ -10564,19 +10564,11 @@ function _calOpenModal(defaultDate) {
     </div>
   </div>
 
-  <!-- Link -->
+  <!-- Links (múltiplos) -->
   <div>
-    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Link de acesso (opcional)</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
-      <button id="cal-lt-none"  onclick="_calSetLt('none')"  class="btn btn-primary" style="font-size:11px;padding:5px 12px">— Sem link</button>
-      <button id="cal-lt-meet"  onclick="_calSetLt('meet')"  class="btn btn-ghost"   style="font-size:11px;padding:5px 12px">📹 Meet/Zoom</button>
-      <button id="cal-lt-maps"  onclick="_calSetLt('maps')"  class="btn btn-ghost"   style="font-size:11px;padding:5px 12px">📍 Localização</button>
-      <button id="cal-lt-other" onclick="_calSetLt('other')" class="btn btn-ghost"   style="font-size:11px;padding:5px 12px">🔗 Outro</button>
-    </div>
-    <div id="cal-panel-lt" style="display:none">
-      <input id="cal-f-link" type="url" placeholder="https://..."
-        style="width:100%;background:var(--bg-input,var(--bg-card));border:1px solid var(--border);border-radius:9px;padding:10px 13px;color:var(--text-primary);font-size:13px;outline:none;font-family:inherit">
-    </div>
+    <div style="font-size:10px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px">Links de acesso (opcional)</div>
+    <div id="cal-links-list" style="display:flex;flex-direction:column;gap:7px;margin-bottom:8px"></div>
+    <button onclick="_calAddLink()" class="btn btn-ghost" style="font-size:11px;padding:5px 14px;width:100%;border-style:dashed">+ Adicionar link</button>
   </div>
 
   <!-- Visibilidade -->
@@ -10655,13 +10647,39 @@ function _calSetPt(type) {
   if (inp) inp.placeholder = type === 'client' ? 'Nome do cliente...' : 'Nome do membro...';
 }
 
-function _calSetLt(type) {
-  _calModalState.linkType = type;
-  ['none','meet','maps','other'].forEach(t => {
-    const b = document.getElementById('cal-lt-' + t);
-    if (b) b.className = t === type ? 'btn btn-primary' : 'btn btn-ghost';
-  });
-  document.getElementById('cal-panel-lt').style.display = type === 'none' ? 'none' : '';
+function _calSetLt() {} // legacy — replaced by _calAddLink
+
+function _calAddLink() {
+  if (!_calModalState.links) _calModalState.links = [];
+  const idx = _calModalState.links.length;
+  _calModalState.links.push({ type: 'meet', url: '' });
+  _calRenderLinksList();
+}
+
+function _calRemoveLink(idx) {
+  _calModalState.links.splice(idx, 1);
+  _calRenderLinksList();
+}
+
+function _calRenderLinksList() {
+  const el = document.getElementById('cal-links-list');
+  if (!el) return;
+  const links = _calModalState.links || [];
+  if (!links.length) { el.innerHTML = ''; return; }
+  el.innerHTML = links.map((lk, i) => `
+    <div style="display:flex;gap:6px;align-items:center">
+      <select onchange="_calModalState.links[${i}].type=this.value"
+        style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit;flex-shrink:0">
+        <option value="meet"  ${lk.type==='meet'?'selected':''}>📹 Meet/Zoom</option>
+        <option value="maps"  ${lk.type==='maps'?'selected':''}>📍 Localização</option>
+        <option value="other" ${lk.type==='other'?'selected':''}>🔗 Outro</option>
+      </select>
+      <input type="url" value="${lk.url}" placeholder="https://..."
+        oninput="_calModalState.links[${i}].url=this.value"
+        style="flex:1;background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text-primary);font-size:12px;outline:none;font-family:inherit">
+      <button onclick="_calRemoveLink(${i})" style="background:transparent;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:4px;flex-shrink:0">×</button>
+    </div>
+  `).join('');
 }
 
 function _calSetVis(vis) {
@@ -10705,8 +10723,7 @@ async function _calSave() {
     time:            document.getElementById('cal-f-time')?.value || '',
     participantType: st.participantType || 'none',
     participantName: st.participantType !== 'none' ? (document.getElementById('cal-f-ptname')?.value.trim() || '') : '',
-    linkType:        st.linkType || 'none',
-    link:            st.linkType !== 'none' ? (document.getElementById('cal-f-link')?.value.trim() || '') : '',
+    links:           (st.links || []).filter(l => l.url && l.url.trim()),
     visibility:      st.visibility || 'public',
     color:           st.color || _CAL_COLORS[0],
     completedDates:  [],

@@ -1,58 +1,94 @@
+/* ── DigitalCreate Hub — Design System ──────────────────────
+   Paleta: #a760fd · #8f71fd · #6daffd · #65e7f3
+           #262562 · #3a2d94 · #7c22b4 · #f1edf9
+   ───────────────────────────────────────────────────────── */
 :root {
-  --bg-base: #0a0a0f;
-  --bg-card: #111118;
-  --bg-card2: #16161f;
-  --bg-hover: #1c1c28;
-  --border: #1e1e2e;
-  --border-bright: #2a2a3e;
-  --accent: #7c5cfc;
-  --accent2: #38b6ff;
-  --accent-grad: linear-gradient(135deg, #7c5cfc 0%, #38b6ff 100%);
-  --accent-soft: rgba(124,92,252,0.12);
-  --accent-soft2: rgba(56,182,255,0.10);
-  --text-primary: #eeeef5;
-  --text-secondary: #8888a8;
-  --text-muted: #55556a;
-  --green: #2dce89;
+  /* Backgrounds */
+  --bg-base:    #080714;
+  --bg-card:    #0f0d22;
+  --bg-card2:   #15122e;
+  --bg-hover:   #1e1a3a;
+  --bg-sidebar: #0a0818;
+
+  /* Borders */
+  --border:        rgba(143,113,253,0.14);
+  --border-bright: rgba(167,96,253,0.32);
+
+  /* Brand accents */
+  --accent:       #a760fd;
+  --accent2:      #65e7f3;
+  --accent3:      #6daffd;
+  --accent-dark:  #7c22b4;
+  --accent-deep:  #3a2d94;
+  --accent-grad:  linear-gradient(135deg, #a760fd 0%, #65e7f3 100%);
+  --accent-grad2: linear-gradient(135deg, #8f71fd 0%, #6daffd 100%);
+  --accent-soft:  rgba(167,96,253,0.13);
+  --accent-soft2: rgba(101,231,243,0.10);
+
+  /* Typography */
+  --text-primary:   #f1edf9;
+  --text-secondary: #a09ccc;
+  --text-muted:     #6058a0;
+
+  /* Semantic */
+  --green:  #2dce89;
   --yellow: #f4c430;
-  --red: #f5365c;
+  --red:    #f5365c;
   --orange: #fb6340;
-  --blue: #38b6ff;
-  --purple: #7c5cfc;
-  --radius: 10px;
+  --blue:   #6daffd;
+  --purple: #a760fd;
+
+  /* Misc */
+  --radius:    10px;
   --radius-lg: 14px;
-  --font: 'Sora', sans-serif;
-  --mono: 'JetBrains Mono', monospace;
+  --font:  'Sora', sans-serif;
+  --mono:  'JetBrains Mono', monospace;
+
+  /* Shadows */
+  --shadow-accent: 0 4px 24px rgba(167,96,253,0.25);
+  --shadow-card:   0 2px 16px rgba(0,0,0,0.4);
 }
 
-/* LIGHT THEME */
+/* ── LIGHT THEME ──────────────────────────────────────────── */
 body.light {
-  --bg-base: #f4f4f8;
-  --bg-card: #ffffff;
-  --bg-card2: #f0f0f6;
-  --bg-hover: #e8e8f2;
-  --border: #dcdce8;
-  --border-bright: #c8c8dc;
-  --accent: #7c5cfc;
-  --accent2: #38b6ff;
-  --accent-grad: linear-gradient(135deg, #7c5cfc 0%, #38b6ff 100%);
-  --accent-soft: rgba(124,92,252,0.10);
-  --accent-soft2: rgba(56,182,255,0.08);
-  --text-primary: #18181f;
-  --text-secondary: #52526e;
-  --text-muted: #9898b0;
-  --green: #18a06a;
+  --bg-base:    #f1edf9;
+  --bg-card:    #ffffff;
+  --bg-card2:   #f7f3fe;
+  --bg-hover:   #ede8f8;
+  --bg-sidebar: #f3effc;
+
+  --border:        rgba(58,45,148,0.14);
+  --border-bright: rgba(124,34,180,0.28);
+
+  --accent:       #7c22b4;
+  --accent2:      #3a2d94;
+  --accent3:      #6daffd;
+  --accent-dark:  #262562;
+  --accent-deep:  #3a2d94;
+  --accent-grad:  linear-gradient(135deg, #7c22b4 0%, #3a2d94 100%);
+  --accent-grad2: linear-gradient(135deg, #8f71fd 0%, #6daffd 100%);
+  --accent-soft:  rgba(124,34,180,0.10);
+  --accent-soft2: rgba(58,45,148,0.08);
+
+  --text-primary:   #1a1040;
+  --text-secondary: #4a3a7a;
+  --text-muted:     #9080b8;
+
+  --green:  #18a06a;
   --yellow: #c49800;
-  --red: #d92150;
+  --red:    #d92150;
   --orange: #e04d20;
-  --blue: #1a90d6;
-  --purple: #7c5cfc;
+  --blue:   #3a2d94;
+  --purple: #7c22b4;
+
+  --shadow-accent: 0 4px 20px rgba(124,34,180,0.18);
+  --shadow-card:   0 2px 12px rgba(58,45,148,0.08);
 }
 
 /* LOGIN SCREEN */
 #login-screen { position:fixed;inset:0;background:var(--bg-base);z-index:10000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:0; }
 .login-box { background:var(--bg-card);border:1px solid var(--border-bright);border-radius:20px;padding:44px 48px;max-width:420px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,0.5); }
-.login-logo { width:56px;height:56px;border-radius:14px;background:var(--accent-grad);display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;margin:0 auto 20px;box-shadow:0 8px 24px rgba(124,92,252,0.4); }
+.login-logo { width:64px;height:64px;border-radius:16px;background:var(--accent-grad);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#fff;margin:0 auto 22px;box-shadow:var(--shadow-accent); }
 .login-title { font-size:22px;font-weight:700;margin-bottom:6px; }
 .login-sub { font-size:13px;color:var(--text-muted);margin-bottom:32px; }
 .btn-google { display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:13px 20px;border-radius:10px;border:1px solid var(--border-bright);background:var(--bg-card2);color:var(--text-primary);font-family:var(--font);font-size:14px;font-weight:600;cursor:pointer;transition:all 0.2s; }
